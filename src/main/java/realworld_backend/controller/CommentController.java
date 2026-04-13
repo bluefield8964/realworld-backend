@@ -13,7 +13,6 @@ import realworld_backend.dto.responseBody.CommentResponse;
 import realworld_backend.insolver.CurrentUser;
 import realworld_backend.model.User;
 import realworld_backend.service.CommentService;
-import realworld_backend.service.UserService;
 
 import java.util.List;
 

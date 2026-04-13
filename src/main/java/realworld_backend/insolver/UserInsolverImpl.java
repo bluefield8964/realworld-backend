@@ -1,7 +1,6 @@
 package realworld_backend.insolver;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,8 +11,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import realworld_backend.model.User;
-import realworld_backend.repository.UserRepository;
-import realworld_backend.tool.TokenTool;
 
 @Component
 public class UserInsolverImpl implements HandlerMethodArgumentResolver {
@@ -37,7 +34,7 @@ public class UserInsolverImpl implements HandlerMethodArgumentResolver {
         if (authentication != null && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
             // gain user info from jwt then inject into user
-            if ( authentication.getPrincipal() instanceof Jwt jwt) {
+            if (authentication.getPrincipal() instanceof Jwt jwt) {
                 user.setId(jwt.getClaim("userId"));
                 user.setBio(jwt.getClaim("userBio"));
                 user.setImage(jwt.getClaim("userImage"));

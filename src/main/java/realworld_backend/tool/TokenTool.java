@@ -18,6 +18,7 @@ import realworld_backend.dto.Exception.TokenInvalidException;
 import realworld_backend.model.User;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -57,8 +58,8 @@ public class TokenTool {
         //token: token ->email
         //token : email -> token
         //in this case , the front token can be deleted after the latter token will be generated
-        redisTemplate.opsForValue().set("Bearer:" + tokenValue, user.getId(), 1, TimeUnit.HOURS);
-        redisTemplate.opsForValue().set("Bearer_id:" + user.getId(), tokenValue, 1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set("Bearer:" + tokenValue, user.getId(), Duration.ofHours(1));
+        redisTemplate.opsForValue().set("Bearer_id:" + user.getId(), tokenValue, Duration.ofHours(1));
         return tokenValue;
     }
 
