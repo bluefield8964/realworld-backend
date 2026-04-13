@@ -1,62 +1,97 @@
 package realworld_backend.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import realworld_backend.dto.ArticleRequest;
-import realworld_backend.dto.Error;
-import realworld_backend.insolver.UserSolve;
-import realworld_backend.model.Articles;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import realworld_backend.dto.Exception.BizException;
+import realworld_backend.dto.Exception.ErrorCode;
+import realworld_backend.dto.requestBody.ArticleRequest;
+import realworld_backend.dto.responseBody.ApiResponse;
+import realworld_backend.dto.responseBody.ArticleResponse;
+import realworld_backend.dto.responseBody.MultipleArticlesResponse;
+import realworld_backend.insolver.CurrentUser;
 import realworld_backend.model.Author;
-import realworld_backend.dto.ArticleResponse;
 import realworld_backend.model.User;
-import realworld_backend.repository.UserRepository;
 import realworld_backend.service.ArticleService;
-import realworld_backend.tool.TokenTool;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
+@Controller
+@RequestMapping("/api")
 public class ArticlesController {
 
-    @Autowired
-    private ArticleService articleService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TokenTool tokenTool;
+    private final ObjectMapper objectMapper;
+    private final ArticleService articleService;
+    public ArticlesController(ArticleService articleService,ObjectMapper objectMapper) {
+        this.articleService = articleService;
+        this.objectMapper = objectMapper;
+    }
+
+
 
     @PostMapping("/articles")
-    public ResponseEntity<ArticleResponse> createArticlesByTags( @RequestBody ArticleRequest articlesResponse){
-        Articles article = articlesResponse.getArticles();
-        article.setSlug(generateSlug(article.getTitle()));
-        article.setCreatedAt(LocalDateTime.now());
-        article.setUpdatedAt(LocalDateTime.now());
-        article.setFavorited(false);
-        article.setFavoritesCount(0L);
-        //principal was injected with email
-        String email = (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.get();
-        // 2️⃣ 构造 author
-        Author author = new Author();
-        author.setUsername(user.getUsername());
-        author.setAuthorId(user.getId());// 模拟用户
-        article.setAuthor(author);
-        ArticleResponse generateArticle = articleService.createArticle(article);
-             return    ResponseEntity.status(HttpStatus.CREATED).body(generateArticle);
+    public ApiResponse createArticlesByTags(@RequestBody ArticleRequest articleRequest,@AuthenticationPrincipal Jwt jwt) {
 
+        ArticleResponse generateArticle = articleService.createArticle(articleRequest,jwt);
+        return ApiResponse.success(generateArticle);
     }
-    // slug 生成
-    private String generateSlug(String title) {
-        return title.toLowerCase().replace(" ", "-");
+
+
+
+    @GetMapping("/articles")
+    public ApiResponse listArticles(@RequestParam(required = false) Author author,@CurrentUser User user,@RequestParam String tag) {
+
+        List<ArticleResponse> articles = articleService.getAllArticles(user, author,tag);
+        // return articles number and articles
+        Map<String, Object> result = new HashMap<>();
+        result.put("articles", articles);
+        result.put("articlesCount", articles.size());
+        return ApiResponse.success(result);
     }
+
+    @PutMapping("/api/articles/{slug}")
+    public ApiResponse updateArticle(@PathVariable String slug, @RequestBody JsonNode requestBody, @CurrentUser User user) {
+        JsonNode articleNode = requestBody.get("article");
+        if (articleNode.has("tagList") && articleNode.get("tagList").isNull()) {
+            throw new BizException(ErrorCode.FORBIDDEN);
+        }
+        ArticleRequest request = objectMapper.convertValue(requestBody, ArticleRequest.class);
+        ArticleResponse response = articleService.updateArticle(slug, request, user);
+        return ApiResponse.success(response);}
+
+
+    @GetMapping("/api/articles/{slug}")
+    public ApiResponse getArticleBySlug(@PathVariable String slug,  @CurrentUser User user) {
+        ArticleResponse response = articleService.getArticleBySlug(slug, user);
+        return ApiResponse.success(response);}
+
+    @GetMapping("/articles/feed")
+    public ApiResponse getFeed(
+            @CurrentUser User currentUser,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "0") int offset
+    ) {
+
+        if (currentUser == null) {
+            throw new BizException(ErrorCode.TOKEN_INVALID);
+        }
+
+        MultipleArticlesResponse response = articleService.getFeed(currentUser,limit,offset);
+        return ApiResponse.success(response);
+    }
+
+
+    @DeleteMapping("/articles/{slug1}")
+    public ResponseEntity deleteArticles(@PathVariable String slug,  @CurrentUser User user) {
+        if (user == null) {
+            throw new BizException(ErrorCode.TOKEN_INVALID);
+        }
+        articleService.deleteBySlug(slug, user);
+        return ResponseEntity.noContent().build();}
 }

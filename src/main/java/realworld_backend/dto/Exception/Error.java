@@ -1,6 +1,5 @@
-package realworld_backend.dto;
+package realworld_backend.dto.Exception;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;

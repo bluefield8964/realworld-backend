@@ -1,6 +1,4 @@
-package realworld_backend.exception;
-
-import realworld_backend.dto.ErrorCode;
+package realworld_backend.dto.Exception;
 
 public class TokenInvalidException extends RuntimeException{
     private final ErrorCode errorCode;
@@ -9,7 +7,7 @@ public class TokenInvalidException extends RuntimeException{
         this.errorCode = errorCode;
     }
 
-    public ErrorCode geterrorCode() {
+    public ErrorCode getErrorCode() {
         return errorCode;
     }
 }

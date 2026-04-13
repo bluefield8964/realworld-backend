@@ -2,7 +2,7 @@ package realworld_backend.tool;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
-import realworld_backend.dto.ApiResponse;
+import realworld_backend.dto.responseBody.ApiResponse;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;

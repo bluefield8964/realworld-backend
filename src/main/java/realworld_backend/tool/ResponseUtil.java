@@ -1,7 +1,7 @@
 package realworld_backend.tool;
 
 import jakarta.servlet.http.HttpServletResponse;
-import realworld_backend.dto.ErrorCode;
+import realworld_backend.dto.Exception.ErrorCode;
 
 import java.io.IOException;
 

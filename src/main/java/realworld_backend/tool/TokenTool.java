@@ -1,67 +1,77 @@
 package realworld_backend.tool;
 
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
-import realworld_backend.config.RedisConfig;
-import realworld_backend.dto.ErrorCode;
-import realworld_backend.exception.TokenExpiredException;
-import realworld_backend.exception.TokenInvalidException;
+import realworld_backend.dto.Exception.ErrorCode;
+import realworld_backend.dto.Exception.TokenExpiredException;
+import realworld_backend.dto.Exception.TokenInvalidException;
 import realworld_backend.model.User;
-import realworld_backend.service.RegisterService;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import static realworld_backend.dto.ErrorCode.TOKEN_EXPIRED;
+import static realworld_backend.dto.Exception.ErrorCode.TOKEN_EXPIRED;
 
 @Component
 public class TokenTool {
-    private final String SECRET_KEY = "lentionDelia_the_will_change_since_truth_break_out";
 
     private final JwtEncoder jwtEncoder;
-    private final JwtDecoder jwtDecoder;
 
-    public TokenTool(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public TokenTool(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, RedisTemplate<String, Object> redisTemplate) {
         this.jwtEncoder = jwtEncoder;
-        this.jwtDecoder = jwtDecoder;
+
+        this.redisTemplate = redisTemplate;
     }
 
-    @Autowired
-    private RedisTemplate<String,Object> redisTemplate;
-    @Autowired
-    private RegisterService registerService;
 
     public String generateToken(User user) {
         Instant now = Instant.now();
-
+        String oldToken = (String) redisTemplate.opsForValue().get("Bearer_id:" + user.getId());
+        if (oldToken != null) {
+            redisTemplate.delete("Bearer:" + oldToken);
+        }
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(user.getEmail())              // 主体（谁）
+                .subject(user.getEmail())
+                .claim("userId", user.getId())
                 .claim("username", user.getUsername())
-                .claim("Email", user.getEmail())// 自定义字段
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(3600))      // 1小时过期
+                .expiresAt(now.plusSeconds(3600))
                 .build();
-        String tokenValue = jwtEncoder.encode(JwtEncoderParameters.from(claims))
-                .getTokenValue();
-        redisTemplate.opsForValue().set("token:"+tokenValue, user.getEmail(),1, TimeUnit.HOURS);
+
+        String tokenValue = jwtEncoder.encode(
+                JwtEncoderParameters.from(claims)).getTokenValue();
+        //token: token ->email
+        //token : email -> token
+        //in this case , the front token can be deleted after the latter token will be generated
+        redisTemplate.opsForValue().set("Bearer:" + tokenValue, user.getId(), 1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set("Bearer_id:" + user.getId(), tokenValue, 1, TimeUnit.HOURS);
         return tokenValue;
     }
 
-    public String decodeToken(String token) {
+
+    public JWTClaimsSet gainJwt(String token) {
 
         try {
             SignedJWT jwt = SignedJWT.parse(token);
-            Date expirationTime = jwt.getJWTClaimsSet().getExpirationTime();
-            if (expirationTime != null && expirationTime.before(new Date())) {
+            JWTClaimsSet jwtClaimsSet = jwt.getJWTClaimsSet();
+            if (jwtClaimsSet.getExpirationTime() != null && jwtClaimsSet.getExpirationTime().before(new Date())) {
                 throw new TokenExpiredException(TOKEN_EXPIRED);
             }
-            return jwtDecoder.decode(token).getSubject();
+            return jwtClaimsSet;
         } catch (ParseException e) {
             throw new RuntimeException(e);
         } catch (
@@ -70,6 +80,17 @@ public class TokenTool {
         }
     }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    public long tokenRemainingTime(String token) throws ParseException {
+        SignedJWT jwt = SignedJWT.parse(token);
+        Date expirationTime = jwt.getJWTClaimsSet().getExpirationTime();
+        long now = System.currentTimeMillis();
+        return (expirationTime.getTime() - now) / 1000;
+    }
 
 
 }

@@ -3,21 +3,24 @@ spring:
     url: jdbc:mysql://localhost:3306/realworld?useSSL=false&serverTimezone=UTC
     username: root
     password: lention
-    ddl-auto: update
   application:
     name: realworld-backend
-  redis:
-    host: localhost
-    port: 6379
-    password: yourpassword  # 如果没有密码可以省略
-    lettuce:
-      pool:
-        max-active: 10
-        max-idle: 5
-        min-idle: 1
-        max-wait: 5000ms
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:   # 如果没有密码可以省略
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+          max-wait: 5000ms
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${WEBHOOK_SECRET}

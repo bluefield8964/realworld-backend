@@ -1,15 +1,13 @@
 package realworld_backend.dto.Exception;
 
-import realworld_backend.dto.ErrorCode;
-
 public class BizException extends RuntimeException{
-    private final int code;
+    private final ErrorCode code;
     public BizException(ErrorCode errorCode) {
         super(errorCode.getMessage());
-        this.code = errorCode.getCode();
+        this.code = errorCode;
     }
 
-    public int getCode() {
+    public ErrorCode getErrorCode() {
         return code;
     }
 }

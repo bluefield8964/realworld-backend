@@ -4,22 +4,24 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import org.springframework.stereotype.Component;
-import realworld_backend.dto.ApiResponse;
-import realworld_backend.dto.ErrorCode;
+import realworld_backend.dto.responseBody.ApiResponse;
+import realworld_backend.dto.Exception.ErrorCode;
 
 import java.io.IOException;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    @Autowired
-    private FilterResponseUtil responseUtil;
 
+    private final FilterResponseUtil responseUtil;
+
+    public JwtAuthenticationEntryPoint(FilterResponseUtil responseUtil){
+        this.responseUtil= responseUtil;
+    }
     @Override
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,

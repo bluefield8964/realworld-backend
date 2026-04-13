@@ -1,26 +1,22 @@
 package realworld_backend.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "tags")
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class Role {
+@NoArgsConstructor
+public class Tag {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // 角色名：ADMIN / USER / MANAGER
+
     @Column(unique = true, nullable = false)
     private String name;
-
-    private String description;
-
 }

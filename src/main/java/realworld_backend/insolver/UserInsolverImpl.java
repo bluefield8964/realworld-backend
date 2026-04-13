@@ -1,7 +1,11 @@
 package realworld_backend.insolver;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -14,30 +18,33 @@ import realworld_backend.tool.TokenTool;
 @Component
 public class UserInsolverImpl implements HandlerMethodArgumentResolver {
 
-    private final UserRepository userRepository;
-    private final TokenTool tokenTool;
 
-    public UserInsolverImpl(UserRepository userRepository, TokenTool jwtUtil) {
-        this.userRepository = userRepository;
-        this.tokenTool = jwtUtil;
-    }
-
-    // 判断这个参数要不要处理
+    // decide whether this parameter need to handle
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(UserSolve.class)
+        return parameter.hasParameterAnnotation(CurrentUser.class)
                 && parameter.getParameterType().equals(User.class);
     }
 
-    // 真正注入值的地方
+    // inject user
     @Override
     public Object resolveArgument(MethodParameter parameter,
                                   ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) {
-
-        HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
-
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = new User();
+        if (authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)) {
+            // gain user info from jwt then inject into user
+            if ( authentication.getPrincipal() instanceof Jwt jwt) {
+                user.setId(jwt.getClaim("userId"));
+                user.setBio(jwt.getClaim("userBio"));
+                user.setImage(jwt.getClaim("userImage"));
+                user.setUsername(jwt.getClaim("username"));
+            }
+            return user;
+        }
         return null;
     }
 }
