@@ -24,7 +24,7 @@ public class WebhookController {
     @PostMapping("/orderAcceptor")
     public ResponseEntity<String> handleWebhook(
             @RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader
+            @RequestHeader(value="Stripe-Signature") String sigHeader
     ) {
 
         try {

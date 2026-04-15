@@ -18,7 +18,8 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @NotNull
+    private Long product;
     @NotNull
     private Long userId;
     @NotNull
@@ -27,16 +28,20 @@ public class Order {
     @NotNull
     private Long amount;
     @NotNull
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
     @NotNull
+    @Column(unique = true)
     private String stripeSessionId;
-    @NotNull
+
     private LocalDateTime createdAt;
-    @NotNull
+
     private LocalDateTime updatedAt;
-    @NotNull
+
     private String stripePaymentIntentId;
-    @NotNull
+    @Column(length = 500)
     private String paymentUrl;
+
+    private String activeKey;
 
 }

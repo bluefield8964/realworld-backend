@@ -31,7 +31,7 @@ build/
 
 
 # 🔐 local config (IMPORTANT)
-src/main/resources/application_local.yaml
+src/main/resources/application-local.yaml
 src/main/resources/application-dev.yaml
 
 # optional: ignore all local configs

@@ -1,26 +1,27 @@
 package realworld_backend.controller;
 
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import realworld_backend.service.PaymentService;
+import realworld_backend.service.OrderService;
 
 @RestController
 @RequestMapping("/api/payment")
 public class PaymentController {
 
-    public final PaymentService paymentService;
+    public final OrderService orderService;
 
-    public PaymentController(PaymentService paymentService) {
-        this.paymentService = paymentService;
+    public PaymentController(OrderService orderService) {
+        this.orderService = orderService;
     }
 
     @PostMapping("/create")
-    public String createPayment(@AuthenticationPrincipal Jwt jwt) throws Exception {
-        return paymentService.createPayment(jwt);
+    public String createPayment(@AuthenticationPrincipal Jwt jwt, @Param("productId") Long productId) throws Exception {
+        return orderService.orderProcess(jwt, productId);
     }
 
     @PostMapping("/webhook")

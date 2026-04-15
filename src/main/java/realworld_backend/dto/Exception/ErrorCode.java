@@ -29,7 +29,9 @@ public enum ErrorCode {
     WITHOUT_ARTICLE(4001, "Article not found"),
 
     //PAY
-    PAYMENT_URL_MISSING(7000, "payment url missing ");
+    PAYMENT_URL_MISSING(7000, "payment url missing "),
+    ORDER_ALREADY_CREATED(7000, "payment already created"),
+    STRIPE_SESSION_CREATION_FAIL(7000, "stripe session creation fail");
 
     private final int code;
     private final String message;

@@ -1,103 +1,59 @@
 package realworld_backend.service;
 
-import com.stripe.model.checkout.Session;
-import com.stripe.net.RequestOptions;
-import com.stripe.param.checkout.SessionCreateParams;
-import org.springframework.security.oauth2.jwt.Jwt;
+import com.stripe.exception.StripeException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import realworld_backend.model.Order;
+import realworld_backend.dto.Exception.BizException;
+import realworld_backend.dto.Exception.ErrorCode;
+import realworld_backend.model.Payment;
+import realworld_backend.model.PaymentStatus;
 import realworld_backend.repository.OrderRepository;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import realworld_backend.repository.PaymentRepository;
 
 @Service
 public class PaymentService {
 
-    private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
 
-    public PaymentService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    public PaymentService(PaymentRepository paymentRepository) {
+        this.paymentRepository = paymentRepository;
+    }
+
+    public void recordInit(String orderNo) {
+        Payment payment = new Payment();
+        payment.setOrderNo(orderNo);
+        payment.setStatus(PaymentStatus.INIT);
+        payment.setProvider("Stripe");
+        paymentRepository.save(payment);
     }
 
 
-    public String createPayment(Jwt jwt) throws Exception {
+    public void recordFail(String orderNo, StripeException stripeException) {
+        // if create session successfully，use session.getUrl() and others parameters
+        // session.getStatus() normally will be  "open"
+        //SAVE SESSION INFO
+        Payment payment = paymentRepository.findByOrderNo(orderNo).orElseThrow(() -> new BizException(ErrorCode.USER_JSON_ERROR));
+        payment.setStatus(PaymentStatus.FAILED);
+        payment.setErrorMsg(stripeException.getMessage());
+        payment.setCode(stripeException.getCode());
+        payment.setRequestId(stripeException.getRequestId());
+        paymentRepository.save(payment);
+    }
 
-        Long userId = jwt.getClaim("userId");
+    public void recordProcessing(String orderNo, String sessionId) {
+        Payment payment = paymentRepository.findByOrderNo(orderNo).orElseThrow(() -> new BizException(ErrorCode.USER_JSON_ERROR));
+        payment.setTransactionId(sessionId);
+        payment.setStatus(PaymentStatus.PROCESSING);
+        paymentRepository.save(payment);
 
-        // 1. CHECK IF USER ALREADY HAS ACTIVE ORDER (VERY IMPORTANT)
-        Optional<Order> existingActive =
-                orderRepository.findByUserIdAndStatus(userId, "PENDING");
+    }
 
-        if (existingActive.isPresent()) {
-            return existingActive.get().getPaymentUrl();
-        }
+    public void recordPaying(String orderNo, String sessionId) {
+        Payment payment = paymentRepository.findByOrderNo(orderNo).orElseThrow(() -> new BizException(ErrorCode.USER_JSON_ERROR));
+        payment.setTransactionId(sessionId);
+        payment.setStatus(PaymentStatus.PAYING);
+        paymentRepository.save(payment);
 
-        // 2. CREATE NEW ORDER
-        Order order = new Order();
-        order.setUserId(userId);
-        order.setOrderNo(UUID.randomUUID().toString());
-        order.setAmount(1000L);
-        order.setStatus("CREATED");
-        order.setCreatedAt(LocalDateTime.now());
-
-        orderRepository.save(order);
-
-        // 3. ATOMIC LOCK (PREVENT RACE CONDITION)
-        int updated = orderRepository.lockOrder(order.getOrderNo());
-
-        if (updated == 0) {
-            // another request already locked it
-            Order lockedOrder = orderRepository.findByOrderNo(order.getOrderNo())
-                    .orElseThrow();
-
-            return lockedOrder.getPaymentUrl();
-        }
-        SessionCreateParams params =
-                SessionCreateParams.builder()
-                        .setMode(SessionCreateParams.Mode.PAYMENT)
-                        .setSuccessUrl("http://localhost:3000/success")
-                        .setCancelUrl("http://localhost:3000/cancel")
-                        .putMetadata("orderNo", order.getOrderNo()) //session process verify
-                        .setPaymentIntentData(                      //payment process verify
-                                SessionCreateParams.PaymentIntentData.builder()
-                                        .putMetadata("orderNo", order.getOrderNo())
-                                        .build()
-                        )
-                        .addLineItem(
-                                SessionCreateParams.LineItem.builder()
-                                        .setQuantity(1L)
-                                        .setPriceData(
-                                                SessionCreateParams.LineItem.PriceData.builder()
-                                                        .setCurrency("usd")
-                                                        .setUnitAmount(order.getAmount())
-                                                        .setProductData(
-                                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                        .setName("VIP Membership")
-                                                                        .build()
-                                                        )
-                                                        .build()
-                                        )
-                                        .build()
-                        )
-                        .build();
-
-        //Session.create(params,options) will send a request to stripe server,it is a Nio network transport,Session.create could be repeated
-        //setIdempotencyKey make sure only one session will exist while using the  Session.create(params,options)
-        RequestOptions options = RequestOptions.builder()
-                .setIdempotencyKey(order.getOrderNo())
-                .build();
-        Session session = Session.create(params,options);
-
-        // 5. SAVE SESSION INFO
-        order.setStripeSessionId(session.getId());
-        order.setPaymentUrl(session.getUrl());
-        order.setStatus("PENDING");
-
-        orderRepository.save(order);
-
-        return session.getUrl();
     }
 }
 
