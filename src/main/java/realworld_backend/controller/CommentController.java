@@ -1,5 +1,6 @@
 package realworld_backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,20 +12,16 @@ import realworld_backend.dto.requestBody.CreateCommentRequest;
 import realworld_backend.dto.responseBody.ApiResponse;
 import realworld_backend.dto.responseBody.CommentResponse;
 import realworld_backend.insolver.CurrentUser;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.service.CommentService;
 
 import java.util.List;
 
 @Controller
+@RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
-
-    public CommentController(CommentService commentService) {
-        this.commentService = commentService;
-
-    }
 
     @PostMapping("/articles/{slug}/comments")
     public ApiResponse<CommentResponse> createComment(

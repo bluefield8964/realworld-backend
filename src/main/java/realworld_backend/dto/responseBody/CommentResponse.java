@@ -3,7 +3,7 @@ package realworld_backend.dto.responseBody;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import realworld_backend.model.Comment;
+import realworld_backend.model.articleModule.Comment;
 
 import java.util.Set;
 

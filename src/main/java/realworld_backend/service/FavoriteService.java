@@ -1,11 +1,12 @@
 package realworld_backend.service;
 
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import realworld_backend.model.Article;
-import realworld_backend.model.Favorite;
-import realworld_backend.model.User;
+import realworld_backend.model.articleModule.Article;
+import realworld_backend.model.articleModule.Favorite;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.repository.ArticleRepository;
 import realworld_backend.repository.FavoriteRepository;
 
@@ -16,15 +17,11 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class FavoriteService {
 
     private final FavoriteRepository favoriteRepository;
     private final ArticleRepository articleRepository;
-
-    public FavoriteService(FavoriteRepository favoriteRepository, ArticleRepository articleRepository) {
-        this.favoriteRepository = favoriteRepository;
-        this.articleRepository = articleRepository;
-    }
 
     @Transactional
     public void favoriteArticle(User user, Article article) {

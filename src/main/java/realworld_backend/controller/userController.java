@@ -4,6 +4,7 @@ package realworld_backend.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,7 @@ import realworld_backend.dto.requestBody.UserRequest;
 import realworld_backend.dto.responseBody.ApiResponse;
 import realworld_backend.dto.responseBody.UserResponse;
 import realworld_backend.insolver.CurrentUser;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.service.UserService;
 import realworld_backend.tool.TokenTool;
 import tools.jackson.databind.JsonNode;
@@ -22,22 +23,19 @@ import java.text.ParseException;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class userController {
 
     private final UserService userService;
     private final TokenTool tokenTool;
-
-    public userController(UserService userService, TokenTool tokenTool) {
-        this.tokenTool = tokenTool;
-        this.userService = userService;
-    }
 
     @PostMapping("/users")
     public ApiResponse<UserResponse> register(@RequestBody @Valid UserRequest userRequest, HttpServletResponse response) {
 
         User registerUser = userService.register(userRequest);
         String token = tokenTool.generateToken(registerUser);
-        response.setHeader("authentication", "Bearer " + token);
+        response.setHeader("Authorization", "Bearer " + token);
+        response.setHeader("Access-Control-Expose-Headers", "Authorization");
         UserResponse userResponse = new UserResponse(registerUser);
         userResponse.setBearer(token);
         return ApiResponse.success(userResponse);

@@ -1,4 +1,4 @@
-package realworld_backend.model;
+package realworld_backend.model.accountModile;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

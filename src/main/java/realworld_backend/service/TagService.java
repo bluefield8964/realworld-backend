@@ -1,7 +1,7 @@
 package realworld_backend.service;
 
 import org.springframework.stereotype.Service;
-import realworld_backend.model.Tag;
+import realworld_backend.model.articleModule.Tag;
 import realworld_backend.repository.TagRepository;
 
 import java.util.HashSet;

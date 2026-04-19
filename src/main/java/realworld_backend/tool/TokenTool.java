@@ -3,6 +3,7 @@ package realworld_backend.tool;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,28 +16,23 @@ import org.springframework.stereotype.Component;
 import realworld_backend.dto.Exception.ErrorCode;
 import realworld_backend.dto.Exception.TokenExpiredException;
 import realworld_backend.dto.Exception.TokenInvalidException;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import static realworld_backend.dto.Exception.ErrorCode.TOKEN_EXPIRED;
 
 @Component
+@RequiredArgsConstructor
 public class TokenTool {
 
     private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
 
     private final RedisTemplate<String, Object> redisTemplate;
-
-    public TokenTool(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, RedisTemplate<String, Object> redisTemplate) {
-        this.jwtEncoder = jwtEncoder;
-
-        this.redisTemplate = redisTemplate;
-    }
 
 
     public String generateToken(User user) {

@@ -31,7 +31,11 @@ public enum ErrorCode {
     //PAY
     PAYMENT_URL_MISSING(7000, "payment url missing "),
     ORDER_ALREADY_CREATED(7000, "payment already created"),
-    STRIPE_SESSION_CREATION_FAIL(7000, "stripe session creation fail");
+    STRIPE_SESSION_CREATION_FAIL(7000, "stripe session creation fail"),
+    ORDER_NOT_FOUND(7000, "order not found"),
+    TRIPE_SESSION_NOT_FOUND(7000, "stripe session not found"),
+    PAYMENT_NOT_FOUND(7000,"PAYMENT NOT FOUND" ),
+    JSON_ERROR(7000,"JSON ERROR" ), EVENT_PROCESSING(7000,"EVENT PROCESSING" );
 
     private final int code;
     private final String message;

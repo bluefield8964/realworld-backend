@@ -2,7 +2,7 @@ package realworld_backend.dto.responseBody;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 
 @NoArgsConstructor
 @Data

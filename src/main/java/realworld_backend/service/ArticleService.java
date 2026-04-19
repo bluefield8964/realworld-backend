@@ -1,5 +1,6 @@
 package realworld_backend.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,10 +14,10 @@ import realworld_backend.dto.responseBody.ArticleFeedResponse;
 import realworld_backend.dto.responseBody.ArticleResponse;
 import realworld_backend.dto.responseBody.AuthorResponse;
 import realworld_backend.dto.responseBody.MultipleArticlesResponse;
-import realworld_backend.model.Article;
-import realworld_backend.model.Author;
-import realworld_backend.model.Tag;
-import realworld_backend.model.User;
+import realworld_backend.model.articleModule.Article;
+import realworld_backend.model.articleModule.Author;
+import realworld_backend.model.articleModule.Tag;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.repository.ArticleRepository;
 import realworld_backend.repository.FollowRepository;
 
@@ -28,20 +29,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ArticleService {
     private final ArticleRepository articleReposity;
     private final FavoriteService favoriteService;
     private final TagService tagService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final FollowRepository followRepository;
-
-    public ArticleService(ArticleRepository articleReposity, FavoriteService favoriteService, TagService tagService, FollowRepository followRepository, RedisTemplate<String, Object> redisTemplate) {
-        this.articleReposity = articleReposity;
-        this.favoriteService = favoriteService;
-        this.tagService = tagService;
-        this.followRepository = followRepository;
-        this.redisTemplate = redisTemplate;
-    }
 
     public ArticleResponse createArticle(ArticleRequest articleRequest, Jwt jwt) {
         Article article = new Article();

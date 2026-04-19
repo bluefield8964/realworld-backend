@@ -1,21 +1,19 @@
 package realworld_backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import realworld_backend.dto.responseBody.ApiResponse;
 import realworld_backend.dto.responseBody.ProfileResponse;
 import realworld_backend.insolver.CurrentUser;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.service.ProfileService;
 
 @Controller
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class ProfileController {
     private final ProfileService profileService;
-
-    public ProfileController(ProfileService profileService) {
-        this.profileService = profileService;
-    }
 
     @GetMapping("/profiles/{username}")
     public ApiResponse<ProfileResponse> getProfile(

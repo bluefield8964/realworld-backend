@@ -1,4 +1,4 @@
-package realworld_backend.model;
+package realworld_backend.model.commerceModule;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +21,7 @@ public class Payment {
     @NotNull
     private String provider;        // paypal / stripe
     @Column(unique = true)
-    private String transactionId;   // from provider
+    private String sessionId;   // from provider
     @NotNull
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;

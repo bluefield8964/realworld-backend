@@ -6,13 +6,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import realworld_backend.model.Order;
-import realworld_backend.model.OrderStatus;
+import realworld_backend.model.commerceModule.Order;
+import realworld_backend.model.commerceModule.OrderStatus;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Integer> {
+public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNo(String orderNo);
 
     List<Order> findTop100ByStatusAndCreatedAtAfterOrderByCreatedAtAsc(OrderStatus status);
@@ -38,6 +40,15 @@ AND o.status = OrderStatus.CREATED
 """)
     int lockOrder(@Param("orderNo") String orderNo);
 
+
+    @Modifying
+    @Query("""
+UPDATE Order o
+SET o.status = OrderStatus.PAID, o.updatedAt = :now
+WHERE o.stripeSessionId = :sessionId
+AND o.status <> OrderStatus.PAID
+""")
+    int markPaidIfNotPaid(@Param("sessionId") String sessionId, @Param("now") LocalDateTime now);
 
     Optional<Order> findByActiveKey(String activeKey);
 }

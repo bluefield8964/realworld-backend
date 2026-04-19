@@ -1,5 +1,6 @@
 package realworld_backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -12,8 +13,8 @@ import realworld_backend.dto.responseBody.ApiResponse;
 import realworld_backend.dto.responseBody.ArticleResponse;
 import realworld_backend.dto.responseBody.MultipleArticlesResponse;
 import realworld_backend.insolver.CurrentUser;
-import realworld_backend.model.Author;
-import realworld_backend.model.User;
+import realworld_backend.model.articleModule.Author;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.service.ArticleService;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -24,14 +25,11 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class ArticlesController {
 
     private final ObjectMapper objectMapper;
     private final ArticleService articleService;
-    public ArticlesController(ArticleService articleService,ObjectMapper objectMapper) {
-        this.articleService = articleService;
-        this.objectMapper = objectMapper;
-    }
 
 
 

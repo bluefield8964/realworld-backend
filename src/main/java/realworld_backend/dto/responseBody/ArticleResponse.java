@@ -2,8 +2,8 @@ package realworld_backend.dto.responseBody;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import realworld_backend.model.Article;
-import realworld_backend.model.Tag;
+import realworld_backend.model.articleModule.Article;
+import realworld_backend.model.articleModule.Tag;
 
 import java.time.LocalDateTime;
 import java.util.Set;

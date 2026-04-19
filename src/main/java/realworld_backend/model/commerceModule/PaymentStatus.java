@@ -1,4 +1,4 @@
-package realworld_backend.model;
+package realworld_backend.model.commerceModule;
 
 public enum PaymentStatus {
     INIT,           // just created

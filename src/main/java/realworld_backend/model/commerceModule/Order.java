@@ -1,4 +1,4 @@
-package realworld_backend.model;
+package realworld_backend.model.commerceModule;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -30,7 +30,7 @@ public class Order {
     @NotNull
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    @NotNull
+
     @Column(unique = true)
     private String stripeSessionId;
 

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import realworld_backend.model.Role;
+import realworld_backend.model.accountModile.Role;
 
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package realworld_backend.model;
+package realworld_backend.model.articleModule;
 
 
 import jakarta.persistence.*;

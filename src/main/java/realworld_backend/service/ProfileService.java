@@ -1,24 +1,21 @@
 package realworld_backend.service;
 
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import realworld_backend.dto.Exception.BizException;
 import realworld_backend.dto.Exception.ErrorCode;
 import realworld_backend.dto.responseBody.ProfileResponse;
-import realworld_backend.model.Follow;
-import realworld_backend.model.User;
+import realworld_backend.model.articleModule.Follow;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.repository.FollowRepository;
 import realworld_backend.repository.UserRepository;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
-
-    public ProfileService(FollowRepository followRepository, UserRepository userRepository) {
-        this.followRepository = followRepository;
-        this.userRepository = userRepository;
-    }
 
     public ProfileResponse getProfile(String username, User currentUser) {
         User following = userRepository.findByUsername(username).orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_DOES_NOT_EXIT));

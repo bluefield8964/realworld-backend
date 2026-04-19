@@ -4,6 +4,7 @@ package realworld_backend.service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DigestUtils;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +16,7 @@ import realworld_backend.dto.Exception.BizException;
 import realworld_backend.dto.Exception.ErrorCode;
 import realworld_backend.dto.requestBody.UserRequest;
 import realworld_backend.dto.responseBody.UserResponse;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.repository.UserRepository;
 import realworld_backend.tool.TokenTool;
 import tools.jackson.databind.JsonNode;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -35,14 +37,6 @@ public class UserService {
     private final TokenTool tokenTool;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
-
-    public UserService(UserRepository userRepository, RedisTemplate<String, Object> redisTemplate, TokenTool tokenTool, ObjectMapper objectMapper, PasswordEncoder passwordEncoder) {
-        this.tokenTool = tokenTool;
-        this.userRepository = userRepository;
-        this.redisTemplate = redisTemplate;
-        this.passwordEncoder = passwordEncoder;
-        this.objectMapper = objectMapper;
-    }
 
     public User register(UserRequest userRequest) {
         UserRequest.UserAcceptor userAcceptor = userRequest.getUserAcceptor();

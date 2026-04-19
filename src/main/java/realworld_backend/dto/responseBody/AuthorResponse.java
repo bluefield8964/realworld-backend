@@ -1,7 +1,7 @@
 package realworld_backend.dto.responseBody;
 
 import lombok.Data;
-import realworld_backend.model.User;
+import realworld_backend.model.accountModile.User;
 
 import java.util.Set;
 

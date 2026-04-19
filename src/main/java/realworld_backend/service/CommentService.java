@@ -1,5 +1,6 @@
 package realworld_backend.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import realworld_backend.dto.Exception.BizException;
@@ -7,9 +8,9 @@ import realworld_backend.dto.Exception.ErrorCode;
 import realworld_backend.dto.requestBody.CreateCommentRequest;
 import realworld_backend.dto.responseBody.AuthorResponse;
 import realworld_backend.dto.responseBody.CommentResponse;
-import realworld_backend.model.Article;
-import realworld_backend.model.Comment;
-import realworld_backend.model.User;
+import realworld_backend.model.articleModule.Article;
+import realworld_backend.model.articleModule.Comment;
+import realworld_backend.model.accountModile.User;
 import realworld_backend.repository.ArticleRepository;
 import realworld_backend.repository.CommentRepository;
 import realworld_backend.repository.FollowRepository;
@@ -21,20 +22,13 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class CommentService {
     private final ArticleRepository articleReposity;
     private final FavoriteService favoriteService;
     private final CommentRepository commentRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final FollowRepository followRepository;
-
-    public CommentService(ArticleRepository articleReposity, FavoriteService favoriteService, CommentRepository commentRepository, FollowRepository followRepository, RedisTemplate<String, Object> redisTemplate) {
-        this.articleReposity = articleReposity;
-        this.favoriteService = favoriteService;
-        this.commentRepository = commentRepository;
-        this.followRepository = followRepository;
-        this.redisTemplate = redisTemplate;
-    }
 
     public CommentResponse createComment(
             String slug,

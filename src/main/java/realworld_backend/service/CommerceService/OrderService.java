@@ -1,9 +1,10 @@
-package realworld_backend.service;
+package realworld_backend.service.CommerceService;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.checkout.SessionCreateParams;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -12,10 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import realworld_backend.dto.Exception.BizException;
 import realworld_backend.dto.Exception.ErrorCode;
-import realworld_backend.model.Order;
-import realworld_backend.model.OrderStatus;
+import realworld_backend.model.commerceModule.Order;
+import realworld_backend.model.commerceModule.OrderStatus;
 import realworld_backend.repository.OrderRepository;
-import realworld_backend.repository.PaymentRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -26,50 +26,52 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final PaymentService paymentService;
     private final Executor paymentExecutor;
 
-    public OrderService(RedisTemplate<String, Object> redisTemplate, OrderRepository orderRepository, PaymentRepository paymentRepository, PaymentService paymentService, Executor paymentExecutor) {
-        this.orderRepository = orderRepository;
-        this.redisTemplate = redisTemplate;
-        this.paymentService = paymentService;
-        this.paymentExecutor = paymentExecutor;
-    }
-
+    /**
+     * Main order entry:
+     * - prevent duplicate submit via Redis lock
+     * - create/reuse order
+     * - create Stripe session
+     * - persist order/payment transitions
+     */
     public String orderProcess(Jwt jwt, Long productId) throws Exception {
         Long userId = jwt.getClaim("userId");
         String activeKey = buildActiveKey(userId, productId);
         Order order = null;
         Session stripeSession = null;
         String lockKey = "pay:lock:" + activeKey;
+
         try {
-            //prevent duplicate generation ---redis lock
+            // Prevent duplicate generation in short period.
             Boolean success = redisTemplate.opsForValue()
                     .setIfAbsent(lockKey, "1", 10, TimeUnit.SECONDS);
             if (!success) {
                 throw new BizException(ErrorCode.ORDER_ALREADY_CREATED);
             }
 
-            //already prevent duplicating generate order
+            // Create new order or reuse existing pending order.
             order = createOrder(userId, productId);
             String orderNo = order.getOrderNo();
+
+            if (order.getStatus() == OrderStatus.PENDING) {
+                return order.getPaymentUrl();
+            }
+
             CompletableFuture.runAsync(() -> paymentService.recordInit(orderNo), paymentExecutor)
                     .exceptionally(e -> {
                         log.error("payment async error", e);
                         return null;
                     });
-            if (order.getStatus() == OrderStatus.PENDING) { //prevent gaining the PENDING status order
-                return order.getPaymentUrl();
-            }
-
             try {
                 stripeSession = createStripeSession(order);
-
             } catch (StripeException e) {
-                saveFailOrder(order, e);
+                saveFailOrder(order);
 
                 CompletableFuture.runAsync(() -> paymentService.recordFail(orderNo, e), paymentExecutor)
                         .exceptionally(a -> {
@@ -79,14 +81,16 @@ public class OrderService {
 
                 throw e;
             }
-            String sessionId = stripeSession.getId();
+
             String url = saveSuccessOrder(order, stripeSession);
+            String sessionId = stripeSession.getId();
 
             CompletableFuture.runAsync(() -> paymentService.recordPaying(orderNo, sessionId), paymentExecutor)
                     .exceptionally(e -> {
                         log.error("payment async error", e);
                         return null;
                     });
+
             return url;
         } finally {
             redisTemplate.delete(lockKey);
@@ -97,12 +101,14 @@ public class OrderService {
     public Order createOrder(Long userId, Long productId) throws Exception {
         String activeKey = buildActiveKey(userId, productId);
         String orderNo = UUID.randomUUID().toString();
-        //selecting generated order     ---database unique lock
+
+        // Try to reuse pending order first.
         Optional<Order> existingOrder = orderRepository.findByActiveKey(activeKey);
         if (existingOrder.isPresent() && existingOrder.get().getStatus() == OrderStatus.PENDING) {
             return existingOrder.get();
         }
-        // CREATE NEW ORDER , MAKE A ATOMIC LOCK (PREVENT RACE CONDITION)
+
+        // Create new order; DB unique key is the final race guard.
         Order order = new Order();
         order.setActiveKey(activeKey);
         order.setStatus(OrderStatus.CREATED);
@@ -110,14 +116,15 @@ public class OrderService {
         order.setOrderNo(orderNo);
         order.setAmount(1000L);
         order.setProduct(520L);
-        order.setStripeSessionId("");
         order.setPaymentUrl("");
         order.setCreatedAt(LocalDateTime.now());
+
         try {
             orderRepository.save(order);
         } catch (DuplicateKeyException e) {
             return orderRepository.findByActiveKey(activeKey).get();
         }
+
         return order;
     }
 
@@ -127,9 +134,11 @@ public class OrderService {
                         .setMode(SessionCreateParams.Mode.PAYMENT)
                         .setSuccessUrl("http://localhost:3000/success")
                         .setCancelUrl("http://localhost:3000/cancel")
-                        .putMetadata("orderNo", order.getOrderNo()) //session process verify
-                        .setPaymentIntentData(                      //payment process verify
-                                SessionCreateParams.PaymentIntentData.builder().putMetadata("orderNo", order.getOrderNo()).build())
+                        .putMetadata("orderNo", order.getOrderNo())
+                        .setPaymentIntentData(
+                                SessionCreateParams.PaymentIntentData.builder()
+                                        .putMetadata("orderNo", order.getOrderNo())
+                                        .build())
                         .addLineItem(
                                 SessionCreateParams.LineItem.builder()
                                         .setQuantity(1L)
@@ -144,20 +153,18 @@ public class OrderService {
                                                         ).build()
                                         ).build()
                         ).build();
-        //Session.create(params,options) will send a request to stripe server,it is a Nio network transport,Session.create could be repeated
-        //setIdempotencyKey make sure only one session will exist while using the  Session.create(params,options)
+
+        // Idempotency key avoids duplicate Stripe session on network retries.
         RequestOptions options = RequestOptions.builder()
                 .setIdempotencyKey(order.getOrderNo())
                 .build();
-        //after this , maybe stripe will send multipart response , so need to verify the status
+
         return Session.create(params, options);
     }
 
     @Transactional
     public String saveSuccessOrder(Order order, Session session) throws Exception {
-// if create session successfully，use session.getUrl() and others parameters
-        // session.getStatus() normally will be  "open"
-        //SAVE SESSION INFO
+        // Persist session data once Stripe session is created.
         order.setStripeSessionId(session.getId());
         order.setPaymentUrl(session.getUrl());
         order.setStatus(OrderStatus.PENDING);
@@ -171,7 +178,6 @@ public class OrderService {
         orderRepository.save(order);
         return null;
     }
-
 
     public String buildActiveKey(Long userId, Long productId) {
         return userId + ":" + productId;

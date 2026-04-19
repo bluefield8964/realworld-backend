@@ -2,7 +2,7 @@ package realworld_backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import realworld_backend.model.Follow;
+import realworld_backend.model.articleModule.Follow;
 
 import java.util.List;
 import java.util.Optional;
