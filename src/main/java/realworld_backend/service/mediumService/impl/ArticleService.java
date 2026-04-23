@@ -1,4 +1,4 @@
-package realworld_backend.service;
+package realworld_backend.service.mediumService.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

@@ -2,6 +2,7 @@ package realworld_backend.model.commerceModule;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+
 public class StripeEvent {
 
     @Id
@@ -24,8 +27,6 @@ public class StripeEvent {
     private StripeEventStatus status;
 
     private String lastError;
-
-    @Column(nullable = false)
     private LocalDateTime eventHandledAt;
 
     private int attempts;

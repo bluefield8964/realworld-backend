@@ -3,11 +3,12 @@ package realworld_backend.model.commerceModule;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,7 +20,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotNull
-    private Long product;
+    private Long productId;
     @NotNull
     private Long userId;
     @NotNull

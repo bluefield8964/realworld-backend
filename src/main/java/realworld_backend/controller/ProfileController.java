@@ -7,7 +7,7 @@ import realworld_backend.dto.responseBody.ApiResponse;
 import realworld_backend.dto.responseBody.ProfileResponse;
 import realworld_backend.insolver.CurrentUser;
 import realworld_backend.model.accountModile.User;
-import realworld_backend.service.ProfileService;
+import realworld_backend.service.mediumService.impl.ProfileService;
 
 @Controller
 @RequestMapping("/api")

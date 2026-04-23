@@ -2,6 +2,7 @@ package realworld_backend.model.articleModule;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import realworld_backend.model.accountModile.User;
@@ -15,7 +16,8 @@ import java.time.LocalDateTime;
 )
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor@Builder
+
 public class Favorite {
 
     @Id

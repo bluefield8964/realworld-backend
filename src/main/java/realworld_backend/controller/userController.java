@@ -15,7 +15,7 @@ import realworld_backend.dto.responseBody.ApiResponse;
 import realworld_backend.dto.responseBody.UserResponse;
 import realworld_backend.insolver.CurrentUser;
 import realworld_backend.model.accountModile.User;
-import realworld_backend.service.UserService;
+import realworld_backend.service.mediumService.impl.UserService;
 import realworld_backend.tool.TokenTool;
 import tools.jackson.databind.JsonNode;
 

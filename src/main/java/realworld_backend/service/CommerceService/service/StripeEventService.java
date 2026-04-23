@@ -1,4 +1,4 @@
-package realworld_backend.service.CommerceService;
+package realworld_backend.service.CommerceService.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,12 +12,15 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+/**
+ * Persists webhook event lifecycle for idempotency and retry control.
+ */
 public class StripeEventService {
     private final StripeEventRepository stripeEventRepository;
 
     /**
-     * Reserve event row in PROCESSING state.
-     * Duplicate key is handled by caller as idempotency signal.
+     * Reserve event slot in PROCESSING.
+     * Duplicate key means the event was seen before.
      */
     public void saveProcessing(String eventId, String eventType) {
         stripeEventRepository.save(
@@ -30,23 +33,23 @@ public class StripeEventService {
     }
 
     /**
-     * Mark event as successful in current transaction context.
+     * Mark event success in current transaction.
      */
     public void markSuccessStatusAndIncAttempt(String eventId, StripeEventStatus status, String lastError) {
         stripeEventRepository.updateStatusAndIncAttempt(eventId, status, lastError, LocalDateTime.now());
     }
 
     /**
-     * Failure path is persisted in an independent transaction.
-     * This guarantees failure trace even when outer transaction rolls back.
+     * Persist failure/dead status in REQUIRES_NEW so trace survives outer rollback.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markFailStatusNoAttempt(String eventId,
+    public void markStripeEventStatusWithAttempt(String eventId,
                                         String type,
                                         StripeEventStatus status,
                                         String lastError,
                                         int attempt,
                                         int attemptInc) {
+        // Upsert handles both "row exists" and "row missing after conflict" cases.
         stripeEventRepository.upsertFailStatus(eventId, type, status.name(),
                 lastError, LocalDateTime.now(), attempt, attemptInc);
     }

@@ -34,9 +34,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Modifying
     @Query("""
 UPDATE Payment p
-SET p.status = PaymentStatus.SUCCESS, p.updatedAt = :now
-WHERE p.stripeSessionId = :sessionId
+SET p.status = PaymentStatus.SUCCESS
+WHERE p.sessionId = :sessionId
 AND p.status <> PaymentStatus.SUCCESS
 """)
-    void markPaidIfNotPaid(@Param("sessionId")String sessionId, @Param("now")  LocalDateTime now);
+    int markPaidIfNotPaid(@Param("sessionId")String sessionId);
 }

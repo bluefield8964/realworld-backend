@@ -3,6 +3,7 @@ package realworld_backend.model.accountModile;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "roles")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor@Builder
+
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

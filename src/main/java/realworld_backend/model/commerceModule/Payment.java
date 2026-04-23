@@ -3,6 +3,7 @@ package realworld_backend.model.commerceModule;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Payment {
 
     @Id
@@ -26,6 +28,8 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
+
+    //for exception
     @Column(length = 500)
     private String errorMsg;
 

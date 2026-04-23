@@ -1,4 +1,4 @@
-package realworld_backend.repository;
+package realworld_backend.repository.CommerceRepository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNo(String orderNo);
 
-    List<Order> findTop100ByStatusAndCreatedAtAfterOrderByCreatedAtAsc(OrderStatus status);
+    List<Order> findTop100ByStatusOrderByCreatedAtAsc(OrderStatus status);
     Optional<Order> findByStripeSessionId(String sessionId);
 
     @Query("""
@@ -51,4 +51,6 @@ AND o.status <> OrderStatus.PAID
     int markPaidIfNotPaid(@Param("sessionId") String sessionId, @Param("now") LocalDateTime now);
 
     Optional<Order> findByActiveKey(String activeKey);
+
+    Boolean existsByStripeSessionIdAndStatus(String sessionId, OrderStatus orderStatus);
 }

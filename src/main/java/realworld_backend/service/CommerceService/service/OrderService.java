@@ -1,9 +1,6 @@
-package realworld_backend.service.CommerceService;
+package realworld_backend.service.CommerceService.service;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.checkout.Session;
-import com.stripe.net.RequestOptions;
-import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -15,7 +12,9 @@ import realworld_backend.dto.Exception.BizException;
 import realworld_backend.dto.Exception.ErrorCode;
 import realworld_backend.model.commerceModule.Order;
 import realworld_backend.model.commerceModule.OrderStatus;
-import realworld_backend.repository.OrderRepository;
+import realworld_backend.model.commerceModule.core.CheckoutSessionData;
+import realworld_backend.repository.CommerceRepository.OrderRepository;
+import realworld_backend.service.CommerceService.core.PaymentChannel;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -27,38 +26,39 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/**
+ * Creates payment orders and starts Stripe checkout.
+ * Handles duplicate-submit protection and pending-order reuse.
+ */
 public class OrderService {
     private final OrderRepository orderRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final PaymentService paymentService;
     private final Executor paymentExecutor;
-
+    private final PaymentChannel paymentChannel;
     /**
-     * Main order entry:
-     * - prevent duplicate submit via Redis lock
-     * - create/reuse order
-     * - create Stripe session
-     * - persist order/payment transitions
+     * Main payment-entry flow from API.
      */
     public String orderProcess(Jwt jwt, Long productId) throws Exception {
         Long userId = jwt.getClaim("userId");
         String activeKey = buildActiveKey(userId, productId);
         Order order = null;
-        Session stripeSession = null;
+        CheckoutSessionData Session = null;
         String lockKey = "pay:lock:" + activeKey;
 
         try {
-            // Prevent duplicate generation in short period.
+            // Short lock to avoid double-click / rapid re-submit.
             Boolean success = redisTemplate.opsForValue()
                     .setIfAbsent(lockKey, "1", 10, TimeUnit.SECONDS);
             if (!success) {
                 throw new BizException(ErrorCode.ORDER_ALREADY_CREATED);
             }
 
-            // Create new order or reuse existing pending order.
+            // Reuse active pending order; otherwise create a new one.
             order = createOrder(userId, productId);
             String orderNo = order.getOrderNo();
 
+            // Keep same checkout URL for active pending order.
             if (order.getStatus() == OrderStatus.PENDING) {
                 return order.getPaymentUrl();
             }
@@ -69,7 +69,7 @@ public class OrderService {
                         return null;
                     });
             try {
-                stripeSession = createStripeSession(order);
+                Session = createStripeSession(order);
             } catch (StripeException e) {
                 saveFailOrder(order);
 
@@ -82,8 +82,8 @@ public class OrderService {
                 throw e;
             }
 
-            String url = saveSuccessOrder(order, stripeSession);
-            String sessionId = stripeSession.getId();
+            String url = saveSuccessOrder(order, Session);
+            String sessionId = Session.getId();
 
             CompletableFuture.runAsync(() -> paymentService.recordPaying(orderNo, sessionId), paymentExecutor)
                     .exceptionally(e -> {
@@ -102,20 +102,20 @@ public class OrderService {
         String activeKey = buildActiveKey(userId, productId);
         String orderNo = UUID.randomUUID().toString();
 
-        // Try to reuse pending order first.
+        // Business-level idempotency: one active order per user+product key.
         Optional<Order> existingOrder = orderRepository.findByActiveKey(activeKey);
         if (existingOrder.isPresent() && existingOrder.get().getStatus() == OrderStatus.PENDING) {
             return existingOrder.get();
         }
 
-        // Create new order; DB unique key is the final race guard.
+        // DB unique key is the last race guard across concurrent workers.
         Order order = new Order();
         order.setActiveKey(activeKey);
         order.setStatus(OrderStatus.CREATED);
         order.setUserId(userId);
         order.setOrderNo(orderNo);
         order.setAmount(1000L);
-        order.setProduct(520L);
+        order.setProductId(520L);
         order.setPaymentUrl("");
         order.setCreatedAt(LocalDateTime.now());
 
@@ -128,21 +128,23 @@ public class OrderService {
         return order;
     }
 
-    public Session createStripeSession(Order order) throws StripeException {
-        SessionCreateParams params =
+    /**
+     * Builds Stripe checkout session and embeds reconciliation metadata.
+     */
+    public CheckoutSessionData createStripeSession(Order order) throws Exception {
+       /* SessionCreateParams params =
                 SessionCreateParams.builder()
                         .setMode(SessionCreateParams.Mode.PAYMENT)
                         .setSuccessUrl("http://localhost:3000/success")
                         .setCancelUrl("http://localhost:3000/cancel")
+                        .putMetadata("internalCustomerId", order.getUserId().toString())
                         .putMetadata("orderNo", order.getOrderNo())
-                        .setPaymentIntentData(
-                                SessionCreateParams.PaymentIntentData.builder()
-                                        .putMetadata("orderNo", order.getOrderNo())
-                                        .build())
+                        .putMetadata("userId", order.getUserId().toString())
+                        .putMetadata("product", String.valueOf(order.getProductId()))
                         .addLineItem(
                                 SessionCreateParams.LineItem.builder()
                                         .setQuantity(1L)
-                                        .setPriceData(
+                                        .setPriceData(//money
                                                 SessionCreateParams.LineItem.PriceData.builder()
                                                         .setCurrency("usd")
                                                         .setUnitAmount(order.getAmount())
@@ -154,17 +156,16 @@ public class OrderService {
                                         ).build()
                         ).build();
 
-        // Idempotency key avoids duplicate Stripe session on network retries.
+        // Stripe-side idempotency for network retries.
         RequestOptions options = RequestOptions.builder()
                 .setIdempotencyKey(order.getOrderNo())
-                .build();
-
-        return Session.create(params, options);
+                .build();*/
+        return paymentChannel.createCheckoutSession(order);
     }
 
     @Transactional
-    public String saveSuccessOrder(Order order, Session session) throws Exception {
-        // Persist session data once Stripe session is created.
+    public String saveSuccessOrder(Order order, CheckoutSessionData session) throws Exception {
+        // Move order into payable state after checkout URL exists.
         order.setStripeSessionId(session.getId());
         order.setPaymentUrl(session.getUrl());
         order.setStatus(OrderStatus.PENDING);
@@ -180,6 +181,29 @@ public class OrderService {
     }
 
     public String buildActiveKey(Long userId, Long productId) {
+        // User+product active-order key.
         return userId + ":" + productId;
+    }
+
+    public Order findBySessionId(String sessionId) {
+        Optional<Order> byStripeSessionId = orderRepository.findByStripeSessionId(sessionId);
+        if (byStripeSessionId.isPresent()) {
+            Order order = byStripeSessionId.get();
+            log.info("order:{} is exist", order.getOrderNo());
+            return order;
+        } else {
+
+            log.info("order:{} not found", sessionId);
+            return null;
+        }
+
+    }
+
+    public Boolean findBySessionIdAndStatus(String sessionId, OrderStatus orderStatus) {
+        return orderRepository.existsByStripeSessionIdAndStatus(sessionId, orderStatus);
+    }
+
+    public void saveReconcileOrder(Order order) {
+        orderRepository.save(order);
     }
 }

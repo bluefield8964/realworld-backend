@@ -2,9 +2,11 @@ package realworld_backend.model.articleModule;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import realworld_backend.model.accountModile.User;
+@Builder
 
 @Entity
 @Table(name="authors")

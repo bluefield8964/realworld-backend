@@ -2,6 +2,7 @@ package realworld_backend.model.articleModule;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "tags")
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor@Builder
+
 public class Tag {
 
     @Id

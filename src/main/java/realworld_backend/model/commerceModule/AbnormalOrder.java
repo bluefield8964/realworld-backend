@@ -20,13 +20,16 @@ public class AbnormalOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String provider;
     private String orderNo;
     private String eventId;
     private String eventType;
-    @NotNull
+
     @Column(unique = true)
     private String sessionId;
+
+    @Column(unique = true)
+    private String requestId;
     private String rawPayload;
     private String reason;
     private String errorMessage;

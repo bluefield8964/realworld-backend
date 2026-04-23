@@ -2,6 +2,7 @@ package realworld_backend.model.articleModule;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import realworld_backend.model.accountModile.User;
@@ -12,7 +13,8 @@ import realworld_backend.model.accountModile.User;
         uniqueConstraints = @UniqueConstraint(columnNames = {"follower_id", "following_id"}))
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Data@Builder
+
 public class Follow {
 
     @Id

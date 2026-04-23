@@ -1,4 +1,4 @@
-package realworld_backend.service;
+package realworld_backend.service.mediumService.impl;
 
 import org.springframework.stereotype.Service;
 import realworld_backend.model.articleModule.Tag;

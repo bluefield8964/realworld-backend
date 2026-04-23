@@ -1,4 +1,4 @@
-package realworld_backend.service;
+package realworld_backend.service.mediumService.impl;
 
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +25,7 @@ import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -244,5 +245,11 @@ public class UserService {
         //  generate new Access Token
 
         return tokenTool.generateToken(user);
+    }
+
+    public Optional<User> findByUserId(Long userId) {
+        return userRepository.findById(userId);
+
+
     }
 }

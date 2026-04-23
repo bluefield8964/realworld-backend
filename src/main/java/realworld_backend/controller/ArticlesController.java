@@ -15,7 +15,7 @@ import realworld_backend.dto.responseBody.MultipleArticlesResponse;
 import realworld_backend.insolver.CurrentUser;
 import realworld_backend.model.articleModule.Author;
 import realworld_backend.model.accountModile.User;
-import realworld_backend.service.ArticleService;
+import realworld_backend.service.mediumService.impl.ArticleService;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

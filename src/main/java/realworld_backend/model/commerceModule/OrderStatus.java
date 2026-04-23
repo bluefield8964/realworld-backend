@@ -6,5 +6,6 @@ public enum OrderStatus {
     PAID,           // payment success
     FAILED,         // payment failed
     PAYMENT_FAILED_RETRYABLE, //payment failed
+    RE_PENDING, //order was fail , but is reconciling
     CANCELLED;
 }
