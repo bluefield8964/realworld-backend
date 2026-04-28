@@ -33,6 +33,7 @@ build/
 # 🔐 local config (IMPORTANT)
 src/main/resources/application-local.yaml
 src/main/resources/application-dev.yaml
+src/main/resources/AGENTS.md
 
 # optional: ignore all local configs
 *.local.yaml

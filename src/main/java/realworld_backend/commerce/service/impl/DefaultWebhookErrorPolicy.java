@@ -2,20 +2,16 @@ package realworld_backend.commerce.service.impl;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import realworld_backend.common.exception.BizException;
-import realworld_backend.common.exception.ErrorCode;
-import realworld_backend.commerce.model.AbnormalOrderStatus;
-import realworld_backend.commerce.model.StripeEventStatus;
+import realworld_backend.commerce.model.EventStatus;
 import realworld_backend.commerce.service.core.PaymentChannelException;
 import realworld_backend.commerce.service.core.WebhookDecision;
 import realworld_backend.commerce.service.core.WebhookErrorPolicy;
-
-import java.util.Set;
+import realworld_backend.common.exception.BizException;
+import realworld_backend.common.exception.ErrorCode;
 
 @Component
 public class DefaultWebhookErrorPolicy implements WebhookErrorPolicy {
     private final int MAX_ATTEMPTS = 5;
-
 
 
     @Override
@@ -24,61 +20,70 @@ public class DefaultWebhookErrorPolicy implements WebhookErrorPolicy {
             ErrorCode code = biz.getErrorCode();
 
             if (code == ErrorCode.ORDER_NOT_FOUND) {
-                return new WebhookDecision(true, StripeEventStatus.DEAD,
-                        HttpStatus.OK, true, AbnormalOrderStatus.ORDER_MISSING);
-            }
-            if (code == ErrorCode.PAYMENT_NOT_FOUND) {
-                return new WebhookDecision(true, StripeEventStatus.DEAD,
-                        HttpStatus.OK, true, AbnormalOrderStatus.PAYMENT_MISSING);
-            }
-            if (code == ErrorCode.TRIPE_SESSION_NOT_FOUND
-                    || code == ErrorCode.JSON_ERROR
-                    || code == ErrorCode.RETRY_EXHAUSTED
-                    || code == ErrorCode.ORDER_FAILED
-            ) {
-                return new WebhookDecision(true, StripeEventStatus.DEAD,
-                        HttpStatus.OK, true, AbnormalOrderStatus.RETRY_EXHAUSTED);
-            }
-            if (code == ErrorCode.IDEMPOTENCYLOCK_CANT_REQUIRE) {
-                return new WebhookDecision(true, StripeEventStatus.PROCESSING,
+                return new WebhookDecision(true, EventStatus.DEAD,
                         HttpStatus.OK, false, null);
             }
+            if (code == ErrorCode.PAYMENT_NOT_FOUND) {
+                return new WebhookDecision(true, EventStatus.DEAD,
+                        HttpStatus.OK, false, null);
+            }
+            if (code == ErrorCode.RETRY_EXHAUSTED
+            ) {
+                return new WebhookDecision(true, EventStatus.DEAD,
+                        HttpStatus.OK, false, null);
+            }
+            if (code == ErrorCode.ORDER_FAILED) {
+                // Local order is already in terminal failed state; stop provider retries.
+                return new WebhookDecision(true, EventStatus.DEAD,
+                        HttpStatus.OK, false, null);
+            }
+
+
+            if (code == ErrorCode.STRIPE_SESSION_NOT_FOUND
+                    || code == ErrorCode.JSON_ERROR
+                    || code == ErrorCode.STATEMENT_DOES_NOT_MATCH_EVENT_TYPE
+            ) {
+                return new WebhookDecision(false, EventStatus.FAILED,
+                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            }
+
+            if (code == ErrorCode.LOCK_CANNOT_ACQUIRE) {
+                // Lock contention is treated as retryable failure, so attempts can move forward.
+                return new WebhookDecision(false, EventStatus.FAILED,
+                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            }
+            if (code == ErrorCode.LOCK_INTERRUPTED) {
+                // Interrupted lock wait should also consume retry budget.
+                return new WebhookDecision(false, EventStatus.FAILED,
+                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            }
+            if (code == ErrorCode.IDEMPOTENCY_LOCK_FAILED) {
+                return new WebhookDecision(false, EventStatus.PROCESSING,
+                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            }
+            if (code == ErrorCode.EVENT_NOT_FOUND) {
+                return new WebhookDecision(false, EventStatus.FAILED,
+                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            }
+
+            if (code == ErrorCode.EVENT_PROCESSING) {
+                return new WebhookDecision(false, EventStatus.PROCESSING,
+                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            }
             // recoverable BizException (lock contention / event processing / etc.)
-            return new WebhookDecision(false, StripeEventStatus.FAILED, HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            return new WebhookDecision(false, EventStatus.FAILED, HttpStatus.INTERNAL_SERVER_ERROR, false, null);
 
-        } else if (ex instanceof PaymentChannelException) {
-            String errorCode = ((PaymentChannelException) ex).getErrorCode();
-            Set<String> recallableErrors = Set.of(
-                    // Temporary errors
-                    "processing_error",
-                    "temporary_failure",
-                    "try_again_later",
-                    "api_connection_error",
-                    "api_error",
-                    "service_unavailable",
-                    "timeout_error",
-
-                    // Rate limiting (with backoff)
-                    "rate_limit",
-
-                    // Processing states
-                    "requires_action",
-                    "requires_confirmation",
-                    "requires_capture",
-                    "processing",
-                    "open",
-                    "requires_payment_method"
-            );
-            boolean contains = recallableErrors.contains(errorCode);
-            if (contains && ((PaymentChannelException) ex).isRetryable()) {
-                return new WebhookDecision(false, StripeEventStatus.FAILED, HttpStatus.INTERNAL_SERVER_ERROR, false, null);
-            }else {
-                return new WebhookDecision(true, StripeEventStatus.DEAD, HttpStatus.OK, true, AbnormalOrderStatus.MANUAL_REVIEW);
+        } else if (ex instanceof PaymentChannelException channelException) {
+            // Channel adapter already mapped provider-specific error semantics.
+            if (channelException.isRetryable()) {
+                return new WebhookDecision(false, EventStatus.FAILED, HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+            } else {
+                return new WebhookDecision(true, EventStatus.DEAD, HttpStatus.OK, true, null);
             }
         }
 
         // unknown exception => recoverable first
-        return new WebhookDecision(false, StripeEventStatus.FAILED, HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+        return new WebhookDecision(false, EventStatus.FAILED, HttpStatus.INTERNAL_SERVER_ERROR, false, null);
     }
 
 

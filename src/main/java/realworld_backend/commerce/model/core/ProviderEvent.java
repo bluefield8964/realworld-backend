@@ -1,27 +1,34 @@
 package realworld_backend.commerce.model.core;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import com.stripe.model.Event;
-import com.stripe.model.StripeObject;
-import com.stripe.model.checkout.Session;
 import lombok.Builder;
 import lombok.Data;
+import realworld_backend.commerce.event.BusinessEventType;
+import realworld_backend.commerce.service.core.EventAnticorruptionLayer;
+import realworld_backend.commerce.service.core.ProviderTimeMapper;
 
+import java.time.Instant;
 import java.util.Map;
 
 @Builder
 @Data
 public class ProviderEvent {
+    private static final Gson WEBHOOK_GSON = new GsonBuilder().create();
 
-    // ===== event envelope =====
-    private String provider;      // stripe
-    private String id;            // eventId
-    private String type;          // eventType
+    // Original provider envelope, normalized for application flow.
+    private String provider;
+    private String eventId;
+    private BusinessEventType type;
     private Long created;
+    private transient Instant createdAt;
     private Boolean livemode;
 
-    // ===== payload =====
+    // Normalized object payload.
     private EventData data;
+
     @Builder
     @Data
     public static class EventData {
@@ -31,40 +38,50 @@ public class ProviderEvent {
     @Builder
     @Data
     public static class ProviderSession {
-        // common object info
+        // Common object fields
         private String id;                // session id / payment_intent id
         private String object;            // checkout.session / payment_intent
         private String status;
-        @SerializedName("payment_status")// complete/open/succeeded/failed
-        private String paymentStatus;     // paid/unpaid
 
-        // fields used by your WebhookService
+        @SerializedName("payment_status")
+        private String paymentStatus;     // complete/open/succeeded/failed
+
+        @SerializedName("mode")
+        private String mode;              // payment/subscription
+
+        @SerializedName("url")
+        private String url;
+
+        // Amount and currency
         @SerializedName("amount_total")
         private Long amountTotal;
+
+        @SerializedName("currency")
         private String currency;
+
+        // Customer details
+        @SerializedName("customer")
         private String customer;
+
         @SerializedName("customer_email")
         private String customerEmail;
+
+        // Payment identifiers
         @SerializedName("payment_intent")
-        private String paymentIntent;
+        private String paymentIntent;     // present for one-time payment flows
+
+        @SerializedName("subscription")
+        private String subscription;      // present for subscription flows
+
+        @SerializedName("setup_intent")
+        private String setupIntent;
+
+        // Business correlation fields
         @SerializedName("client_reference_id")
         private String clientReferenceId;
+
         @SerializedName("metadata")
         private Map<String, String> metadata;
-    }
-
-
-    // ===== helper methods for current flow =====
-    public boolean isCheckoutCompleted() {
-        return "checkout.session.completed".equals(type);
-    }
-
-    public boolean isCheckoutAsyncFailed() {
-        return "checkout.session.async_payment_failed".equals(type);
-    }
-
-    public boolean isActionableForCurrentFlow() {
-        return isCheckoutCompleted() || isCheckoutAsyncFailed();
     }
 
     public String sessionId() {
@@ -89,19 +106,31 @@ public class ProviderEvent {
                 : null;
     }
 
-    public static ProviderEvent fromProviderEvent(Event event,String provider) {
+    public static ProviderEvent fromProviderEvent(Event event, String provider) {
         String json = event.getData().getObject().toJson();
-        ProviderSession obj = Session.GSON.fromJson(json, ProviderSession.class);
+        ProviderSession obj = WEBHOOK_GSON.fromJson(json, ProviderSession.class);
+        BusinessEventType eventType = EventAnticorruptionLayer.convertStripeEvent(event.getType(), json);
 
         return ProviderEvent.builder()
                 .provider(provider)
-                .id(event.getId())
-                .type(event.getType())
+                .eventId(event.getId())
+                .type(eventType)
                 .created(event.getCreated())
+                .createdAt(ProviderTimeMapper.toInstant(event.getCreated()))
                 .livemode(event.getLivemode())
                 .data(EventData.builder().object(obj).build())
                 .build();
     }
 
-}
+    public Instant createdAtInstant() {
+        if (createdAt == null) {
+            createdAt = ProviderTimeMapper.toInstant(created);
+        }
+        return createdAt;
+    }
 
+    // Business helper used by existing subscription checks.
+    public boolean isSubscriptionMode() {
+        return "subscription".equals(data.object.mode);
+    }
+}

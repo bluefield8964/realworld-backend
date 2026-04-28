@@ -5,7 +5,8 @@ import realworld_backend.article.model.Article;
 import realworld_backend.article.model.Tag;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
@@ -15,7 +16,7 @@ public class ArticleFeedResponse {
     private String slug;
     private String title;
     private String description;
-    private Set<String> tagList;
+    private List<String> tagList;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean favorited;
@@ -28,12 +29,16 @@ public class ArticleFeedResponse {
         dto.slug = article.getSlug();
         dto.title = article.getTitle();
         dto.description = article.getDescription();
-        dto.tagList = article.getTagList().stream().map(Tag::getName).collect(Collectors.toSet());
+        dto.tagList = article.getTagList().stream()
+                .map(Tag::getName)
+                .distinct()
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList());
         dto.createdAt = article.getCreatedAt();
         dto.updatedAt = article.getUpdatedAt();
 
         dto.favorited = false;
-        dto.favoritesCount = 0L;
+        dto.favoritesCount = article.getFavoritesCount();
 
         return dto;
     }
@@ -54,11 +59,11 @@ public class ArticleFeedResponse {
         this.createdAt = createdAt;
     }
 
-    public Set<String> getTagList() {
+    public List<String> getTagList() {
         return tagList;
     }
 
-    public void setTagList(Set<String> tagList) {
+    public void setTagList(List<String> tagList) {
         this.tagList = tagList;
     }
 

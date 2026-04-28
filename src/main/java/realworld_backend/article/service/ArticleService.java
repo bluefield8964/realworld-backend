@@ -1,27 +1,33 @@
 package realworld_backend.article.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import realworld_backend.common.exception.BizException;
-import realworld_backend.common.exception.ErrorCode;
+import realworld_backend.article.model.Article;
+import realworld_backend.article.model.Author;
+import realworld_backend.article.model.Tag;
+import realworld_backend.article.model.UserProfile;
+import realworld_backend.article.repository.ArticleRepository;
+import realworld_backend.article.repository.AuthorRepository;
+import realworld_backend.article.repository.UserProfileRepository;
+import realworld_backend.auth.api.request.CurrentAuthUser;
 import realworld_backend.common.dto.requestBody.ArticleRequest;
 import realworld_backend.common.dto.responseBody.ArticleFeedResponse;
 import realworld_backend.common.dto.responseBody.ArticleResponse;
 import realworld_backend.common.dto.responseBody.AuthorResponse;
 import realworld_backend.common.dto.responseBody.MultipleArticlesResponse;
-import realworld_backend.article.model.Article;
-import realworld_backend.article.model.Author;
-import realworld_backend.article.model.Tag;
-import realworld_backend.auth.model.User;
-import realworld_backend.article.repository.ArticleRepository;
-import realworld_backend.article.repository.FollowRepository;
+import realworld_backend.common.exception.BizException;
+import realworld_backend.common.exception.ErrorCode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -35,72 +41,112 @@ public class ArticleService {
     private final FavoriteService favoriteService;
     private final TagService tagService;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final FollowRepository followRepository;
+    private final AuthorService authorService;
+    private final FollowingService followingService;
+    private final UserProfileRepository userProfileRepository;
+    private final AuthorRepository authorRepository;
+    private final ObjectMapper objectMapper;
 
-    public ArticleResponse createArticle(ArticleRequest articleRequest, Jwt jwt) {
-        Article article = new Article();
-        ArticleRequest.articleAcceptor articleBody = articleRequest.getArticle();
-        article.setSlug(generateSlug(articleBody.getTitle()));
-        article.setTitle(articleBody.getTitle());
-        article.setDescription(articleBody.getDescription());
-        article.setBody(articleBody.getBody());
-        Set<Tag> tags = tagService.buildTags(articleBody.getTagList());
-        article.setTagList(tags);
-        article.setCreatedAt(LocalDateTime.now());
-        article.setUpdatedAt(LocalDateTime.now());
-        article.setFavoritesCount(0L);
-
+    public ArticleResponse createArticle(ArticleRequest articleRequest, CurrentAuthUser user) {
         //principal was injected user data
-        String username = jwt.getClaim("username");
-        Long userId = jwt.getClaim("userId");
+        Long userId = user.userId();
+        if (userId == null) {
+            throw new BizException(ErrorCode.TOKEN_INVALID);
+        }
         // construct author
-        User redisUser = (User) redisTemplate.opsForValue().get("user:" + userId);
-        Author author = new Author();
-        assert redisUser != null;
-        author.setUsername(redisUser.getUsername());
-        author.setId(redisUser.getId());
-        author.setUser(redisUser);
-        article.setAuthor(author);
+        UserProfile redisUser = (UserProfile) redisTemplate.opsForValue().get("user:" + userId);
+        if (redisUser == null) {
+            redisUser = userProfileRepository.findById(userId).orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+            redisTemplate.opsForValue().set("user:" + userId, redisUser);
+        }
+        Author author = Author.builder()
+                .username(redisUser.getUsername())
+                .id(redisUser.getId())
+                .userProfile(redisUser)
+                .build();
+
+        LocalDateTime now = LocalDateTime.now();
+        ArticleRequest.ArticlePayload articleBody = articleRequest.getArticle();
+        Set<Tag> tags = tagService.buildTags(articleBody.getTagList());
+        Article article = Article.builder().title(articleBody.getTitle())
+                .description(articleBody.getDescription())
+                .body(articleBody.getBody())
+                .createdAt(now)
+                .updatedAt(now)
+                .slug(generateSlug(articleBody.getTitle()))
+                .favoritesCount(0L)
+                .author(author)
+                .tagList(tags)
+                .title(articleBody.getTitle())
+                .build();
 
         Article articlesSaved = articleReposity.save(article);
 
         return new ArticleResponse(articlesSaved, articlesSaved.getAuthor().getUsername());
     }
 
-    public List<ArticleResponse> getAllArticles(User currentUser, Author author, String tag) {
-        List<Article> articles = articleReposity
-                .findArticles(author, tag);
+
+    public ArticleQueryResult getAllArticles(
+            CurrentAuthUser currentUser,
+            String authorName,
+            String tag,
+            String favoritedUsername,
+            int limit,
+            int offset
+    ) {
+        Author author = null;
         Set<Long> favoritedIds = Collections.emptySet();
-        if (currentUser != null && !articles.isEmpty()) {
-            List<Long> articleIds = articles.stream()
-                    .map(Article::getId)
-                    .toList();
-
-            favoritedIds = favoriteService
-                    .getFavoritedArticleIds(currentUser, articleIds);
-        }
         Set<Long> followingIds = Collections.emptySet();
+        int safeLimit = limit <= 0 ? 20 : limit;
+        int safeOffset = Math.max(offset, 0);
+        Long favoritedUserId = null;
 
-        if (currentUser != null) {
-            followingIds = new HashSet<>(
-                    followRepository.findFollowingIdsByFollowerId(currentUser.getId())
-            );
+        if (authorName != null && !authorName.isBlank()) {
+            author = authorService.findByUsername(authorName);
+            if (author == null) {
+                return new ArticleQueryResult(Collections.emptyList(), 0);
+            }
         }
+
+        if (favoritedUsername != null && !favoritedUsername.isBlank()) {
+            UserProfile favoritedUser = userProfileRepository.findByUsername(favoritedUsername).orElse(null);
+            if (favoritedUser == null) {
+                return new ArticleQueryResult(Collections.emptyList(), 0);
+            }
+            favoritedUserId = favoritedUser.getId();
+        }
+
+        Pageable pageable = OffsetLimitPageRequest.of(
+                safeOffset,
+                safeLimit,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+                        .and(Sort.by(Sort.Direction.DESC, "id"))
+        );
+        Page<Article> articlePage = articleReposity.findArticles(author, tag, favoritedUserId, pageable);
+        List<Article> pageArticles = articlePage.getContent();
+        int totalCount = articleReposity.countArticles(author, tag, favoritedUserId);
+
+
+        if (currentUser != null && !pageArticles.isEmpty()) {
+            favoritedIds = favoriteService.getFavoritedArticleIds(currentUser, pageArticles);
+            followingIds = followingService.findFollowingIdsByFollowerId(currentUser);
+        }
+
         Set<Long> finalFavoritedIds = favoritedIds;
         Set<Long> finalFollowingIds = followingIds;
 
 
-        return articles.stream()
+        List<ArticleResponse> result = pageArticles.stream()
                 .map(article -> {
 
-                    // 鐚?author DTO
+
                     AuthorResponse authorDto =
                             AuthorResponse.from(
-                                    article.getAuthor().getUser(),
+                                    article.getAuthor().getUserProfile(),
                                     finalFollowingIds
                             );
 
-                    // 鐚?article DTO
+
                     ArticleResponse dto = ArticleResponse.from(article);
 
                     dto.setFavorited(
@@ -113,68 +159,109 @@ public class ArticleService {
                     return dto;
                 })
                 .toList();
+        return new ArticleQueryResult(result, totalCount);
+    }
+
+
+
+    @Transactional
+    public ArticleResponse updateArticle(String slug, JsonNode requestBody, CurrentAuthUser user) {
+        if (requestBody == null || requestBody.isNull()) {
+            throw new BizException(ErrorCode.JSON_ERROR);
+        }
+        JsonNode articleNode = requestBody.get("article");
+        if (articleNode == null || articleNode.isNull() || !articleNode.isObject()) {
+            throw new BizException(ErrorCode.JSON_ERROR);
+        }
+        if (articleNode.has("tagList") && articleNode.get("tagList").isNull()) {
+            throw new BizException(ErrorCode.INVALID_INPUT);
+        }
+
+        ArticleRequest request = objectMapper.convertValue(requestBody, ArticleRequest.class);
+        return updateArticle(slug, request, user);
     }
 
     @Transactional
-    public ArticleResponse updateArticle(String slug, ArticleRequest request, User user) {
-        Article article = articleReposity.findBySlug(slug)
-                .orElseThrow(() -> new BizException(ErrorCode.WITHOUT_ARTICLE));
-        // checking authentication
-        if (!article.getAuthor().getId().equals(user.getId())) {
+    public ArticleResponse updateArticle(String slug, ArticleRequest request, CurrentAuthUser user) {
+        if (user == null || user.userId() == null) {
             throw new BizException(ErrorCode.TOKEN_INVALID);
         }
+        if (request == null || request.getArticle() == null) {
+            throw new BizException(ErrorCode.JSON_ERROR);
+        }
+
+        Article article = articleReposity.findBySlug(slug)
+                .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
+        // checking authentication
+        if (!article.getAuthor().getId().equals(user.userId())) {
+            throw new BizException(ErrorCode.TOKEN_INVALID);
+        }
+
         if (request.getArticle().getBody() != null) {
             article.setBody(request.getArticle().getBody());
-
         }
         if (request.getArticle().getTagList() != null) {
             //extract tag from articleRequest
             Set<String> tagList = request.getArticle().getTagList();
             Set<Tag> tags = tagService.buildTags(tagList);
             article.setTagList(tags);
-
         }
-        article.setUpdatedAt(LocalDateTime.now());
 
+        article.setUpdatedAt(LocalDateTime.now());
         Article save = articleReposity.save(article);
+
         ArticleResponse articleResponse = new ArticleResponse();
         articleResponse.setTitle(save.getTitle());
         articleResponse.setSlug(save.getSlug());
         articleResponse.setDescription(save.getDescription());
-        Set<String> list = save.getTagList().stream().map(Tag::getName).collect(Collectors.toSet());
+        List<String> list = save.getTagList().stream()
+                .map(Tag::getName)
+                .distinct()
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList());
         articleResponse.setTagList(list);
         articleResponse.setCreatedAt(save.getCreatedAt());
         articleResponse.setUpdatedAt(save.getUpdatedAt());
         articleResponse.setFavoritesCount(save.getFavoritesCount());
+        articleResponse.setBody(save.getBody());
+        articleResponse.setAuthorResponse(AuthorResponse.from(save.getAuthor().getUserProfile(), Collections.emptySet()));
         articleResponse.setFavorited(favoriteService.checkFavorite(user, save));
 
         return articleResponse;
     }
 
-    public ArticleResponse getArticleBySlug(String slug, User user) {
-        Article article = articleReposity.findBySlug(slug).orElseThrow(() -> new BizException(ErrorCode.WITHOUT_ARTICLE));
+    public ArticleResponse getArticleBySlug(String slug, CurrentAuthUser user) {
+        Article article = articleReposity.findBySlug(slug).orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
         ArticleResponse articleResponse = new ArticleResponse();
         articleResponse.setTitle(article.getTitle());
         articleResponse.setSlug(article.getSlug());
         articleResponse.setDescription(article.getDescription());
-        Set<String> list = article.getTagList().stream().map(Tag::getName).collect(Collectors.toSet());
+        articleResponse.setBody(article.getBody());
+        List<String> list = article.getTagList().stream()
+                .map(Tag::getName)
+                .distinct()
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList());
         articleResponse.setTagList(list);
         articleResponse.setCreatedAt(article.getCreatedAt());
         articleResponse.setUpdatedAt(article.getUpdatedAt());
         articleResponse.setFavoritesCount(article.getFavoritesCount());
+        Set<Long> followingIds = Collections.emptySet();
         if (user != null) {
+            followingIds = followingService.findFollowingIdsByFollowerId(user);
             articleResponse.setFavorited(favoriteService.checkFavorite(user, article));
-        } else {
+        }else {
             articleResponse.setFavorited(false);
         }
+        articleResponse.setAuthorResponse(AuthorResponse.from(article.getAuthor().getUserProfile(), followingIds));
+
         return articleResponse;
     }
 
 
     //feed messageFlow
-    public MultipleArticlesResponse getFeed(User currentUser, int limit, int offset) {
-        List<Long> followingIds = followRepository
-                .findFollowingIdsByFollowerId(currentUser.getId());
+    public MultipleArticlesResponse getFeed(CurrentAuthUser currentUser, int limit, int offset) {
+        Set<Long> followingIds = followingService.findFollowingIdsByFollowerId(currentUser);
 
         if (followingIds.isEmpty()) {
             return new MultipleArticlesResponse(Collections.emptyList(), 0);
@@ -189,13 +276,19 @@ public class ArticleService {
         List<Article> articles = articleReposity
                 .findByAuthorIdInOrderByCreatedAtDesc(followingIds, pageable);
         Set<Long> followingSet = new HashSet<>(followingIds);
+        Set<Long> favoritedIds = Collections.emptySet();
+        if (!articles.isEmpty()) {
+            favoritedIds = favoriteService.getFavoritedArticleIds(currentUser, articles);
+        }
+        Set<Long> finalFavoritedIds = favoritedIds;
 
         List<ArticleFeedResponse> result = articles.stream()
                 .map(article -> {
                     ArticleFeedResponse dto = ArticleFeedResponse.from(article);
+                    dto.setFavorited(finalFavoritedIds.contains(article.getId()));
 
                     AuthorResponse authorDto =
-                            AuthorResponse.from(article.getAuthor().getUser(), followingSet);
+                            AuthorResponse.from(article.getAuthor().getUserProfile(), followingSet);
 
                     dto.setAuthor(authorDto);
 
@@ -205,20 +298,47 @@ public class ArticleService {
         return new MultipleArticlesResponse(result, totalCount);
     }
 
-    public void deleteBySlug(String slug, User user) {
+    public void deleteBySlug(String slug, CurrentAuthUser user) {
         Article article = articleReposity.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Article not found"));
-        if (!article.getAuthor().getUser().getId().equals(user.getId())) {
+                .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
+        if (!article.getAuthor().getUserProfile().getId().equals(user.userId())) {
             throw new BizException(ErrorCode.WITHOUT_ARTICLE);
         }
         articleReposity.delete(article);
     }
 
-    // slug 閻㈢喐鍨?
+    @Transactional
+    public ArticleResponse favoriteArticle(String slug, CurrentAuthUser user) {
+        if (user == null || user.userId() == null) {
+            throw new BizException(ErrorCode.TOKEN_INVALID);
+        }
+        Article article = articleReposity.findBySlug(slug)
+                .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
+        UserProfile userProfile = userProfileRepository.findById(user.userId())
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        favoriteService.favoriteArticle(userProfile, article);
+        return getArticleBySlug(slug, user);
+    }
+
+    @Transactional
+    public ArticleResponse unfavoriteArticle(String slug, CurrentAuthUser user) {
+        if (user == null || user.userId() == null) {
+            throw new BizException(ErrorCode.TOKEN_INVALID);
+        }
+        Article article = articleReposity.findBySlug(slug)
+                .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
+        UserProfile userProfile = userProfileRepository.findById(user.userId())
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        favoriteService.unfavoriteArticle(userProfile, article);
+        return getArticleBySlug(slug, user);
+    }
+
+    // Build URL-friendly slug from title
     private String generateSlug(String title) {
         return title.toLowerCase().replace(" ", "-");
     }
 
+    public record ArticleQueryResult(List<ArticleResponse> articles, int totalCount) {}
 
 }
 

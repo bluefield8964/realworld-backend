@@ -30,19 +30,22 @@ public class Order {
     private Long amount;
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     private OrderStatus status;
 
     @Column(unique = true)
-    private String stripeSessionId;
+    private String sessionId;
+
+    private String provider;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    private String stripePaymentIntentId;
+    private String paymentIntentId;
     @Column(length = 500)
     private String paymentUrl;
-
+    @Column(unique = true)
     private String activeKey;
 
 }

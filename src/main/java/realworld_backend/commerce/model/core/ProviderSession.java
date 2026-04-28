@@ -4,82 +4,78 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.stripe.model.checkout.Session;
 import lombok.Builder;
 import lombok.Data;
+import realworld_backend.commerce.service.core.ProviderTimeMapper;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Builder
 @Data
 public class ProviderSession {
 
-
-    // ============ 閺嶇绺鹃悩鑸碘偓浣哥摟濞堢绱欒箛鍛淬€忛敍?============
     @JsonProperty("id")
-    private String id;                          // Session ID
+    private String id;                          // Checkout session id
 
     @JsonProperty("status")
-    private String status;                      // "open", "complete", "expired"
+    private String status;                      // open / complete / expired
 
     @JsonProperty("payment_status")
-    private String paymentStatus;               // "paid", "unpaid", "no_payment_required"
+    private String paymentStatus;               // paid / unpaid / no_payment_required
 
     @JsonProperty("object")
-    private String object;                      // "checkout.session"
+    private String object;
 
-    // ============ 娑撴艾濮熼弽绋跨妇鐎涙顔?============
     @JsonProperty("amount_total")
-    private Long amountTotal;                   // 閹鍣炬０婵撶礄閸掑棴绱?
+    private Long amountTotal;
 
     @JsonProperty("currency")
-    private String currency;                    // 鐠愌冪娴狅絿鐖?
+    private String currency;
 
     @JsonProperty("customer")
-    private String customer;                    // Stripe 鐎广垺鍩汭D
+    private String customer;
 
     @JsonProperty("customer_email")
-    private String customerEmail;               // 鐎广垺鍩涢柇顔绢唸
+    private String customerEmail;
 
     @JsonProperty("payment_intent")
-    private String paymentIntent;               // PaymentIntent ID
+    private String paymentIntent;
 
     @JsonProperty("client_reference_id")
-    private String clientReferenceId;           // 娴ｇ姷娈戠拋銏犲礋瀵洜鏁D
+    private String clientReferenceId;
 
     @JsonProperty("metadata")
-    private Map<String, String> metadata;       // 閼奉亜鐣炬稊澶夌瑹閸斺剝鏆熼幑?
+    private Map<String, String> metadata;
 
-    // ============ 閺冨爼妫跨€涙顔?============
     @JsonProperty("created")
-    private Long created;                       // 閸掓稑缂撻弮鍫曟？閹?
+    private Long created;
+    private transient Instant createdAt;
 
     @JsonProperty("expires_at")
-    private Long expiresAt;                     // 鏉╁洦婀￠弮鍫曟？閹?
+    private Long expiresAt;
+    private transient Instant expiresAtTime;
 
-    // ============ 鐎广垺鍩涚拠锔藉剰閿涘牆褰查柅澶夌稻閺堝鏁ら敍?============
     @JsonProperty("customer_details")
     private CustomerDetails customerDetails;
 
-    // ============ URL鐎涙顔岄敍鍫濆讲闁绱?============
     @JsonProperty("url")
-    private String url;                         // 缂佹捁澶勬い鐢告桨URL
+    private String url;
 
     @JsonProperty("success_url")
-    private String successUrl;                  // 閹存劕濮涚捄瀹犳祮URL
+    private String successUrl;
 
     @JsonProperty("cancel_url")
-    private String cancelUrl;                   // 閸欐牗绉风捄瀹犳祮URL
+    private String cancelUrl;
 
-    // ============ 閸忔湹绮張澶屾暏鐎涙顔?============
     @JsonProperty("mode")
-    private String mode;                        // "payment", "subscription", "setup"
+    private String mode;
 
     @JsonProperty("livemode")
-    private Boolean livemode;                   // 閺勵垰鎯侀悽鐔堕獓閻滎垰顣?
+    private Boolean livemode;
 
     @JsonProperty("subscription")
-    private String subscription;                // 鐠併垽妲処D閿涘牆顩ч弸婊勬Ц鐠併垽妲勫Ο鈥崇础閿?
+    private String subscription;
 
-
-    // ============ 瀹撳苯顨滅猾浼欑窗鐎广垺鍩涚拠锔藉剰 ============
     @Builder
     public static class CustomerDetails {
         @JsonProperty("email")
@@ -96,11 +92,8 @@ public class ProviderSession {
 
         @JsonProperty("tax_exempt")
         private String taxExempt;
-
-        // getters and setters...
     }
 
-    // ============ 瀹撳苯顨滅猾浼欑窗閸︽澘娼冩穱鈩冧紖 ============
     @Builder
     public static class Address {
         @JsonProperty("city")
@@ -120,11 +113,9 @@ public class ProviderSession {
 
         @JsonProperty("state")
         private String state;
-
-        // getters and setters...
     }
 
-    // ============ 娑撴艾濮熼崚銈嗘焽閺傝纭?============
+    // Maps Stripe session into provider-neutral session structure.
     public static ProviderSession mapToProviderSession(Session session) {
         ProviderSession.CustomerDetails customerDetails = null;
         if (session.getCustomerDetails() != null) {
@@ -150,13 +141,10 @@ public class ProviderSession {
         }
 
         return ProviderSession.builder()
-                // core status
                 .id(session.getId())
                 .status(session.getStatus())
                 .paymentStatus(session.getPaymentStatus())
                 .object(session.getObject())
-
-                // business core
                 .amountTotal(session.getAmountTotal())
                 .currency(session.getCurrency())
                 .customer(session.getCustomer())
@@ -164,12 +152,10 @@ public class ProviderSession {
                 .paymentIntent(session.getPaymentIntent())
                 .clientReferenceId(session.getClientReferenceId())
                 .metadata(session.getMetadata())
-
-                // time
                 .created(session.getCreated())
+                .createdAt(ProviderTimeMapper.toInstant(session.getCreated()))
                 .expiresAt(session.getExpiresAt())
-
-                // optional details
+                .expiresAtTime(ProviderTimeMapper.toInstant(session.getExpiresAt()))
                 .customerDetails(customerDetails)
                 .url(session.getUrl())
                 .successUrl(session.getSuccessUrl())
@@ -180,38 +166,50 @@ public class ProviderSession {
                 .build();
     }
 
-    /**
-     * 閺勵垰鎯侀弨顖欑帛閹存劕濮?
-     */
+    // True when checkout is completed and paid.
     public boolean isPaymentSuccessful() {
         return "complete".equals(status) && "paid".equals(paymentStatus);
     }
 
-    /**
-     * 閺勵垰鎯侀弨顖欑帛婢惰精瑙?
-     */
+    // Treat expired, unpaid checkout as payment failure.
     public boolean isPaymentFailed() {
         return "open".equals(status) && "unpaid".equals(paymentStatus) && isExpired();
     }
 
-    /**
-     * 閺勵垰鎯佸鑼剁箖閺?
-     */
+    // Session expiration check using epoch seconds.
     public boolean isExpired() {
-        if (expiresAt == null) return false;
-        return System.currentTimeMillis() / 1000 > expiresAt;
+        Instant expiresAtInstant = expiresAtInstant();
+        return expiresAtInstant != null && Instant.now().isAfter(expiresAtInstant);
     }
 
-    /**
-     * 閺勵垰鎯佹潻妯哄讲娴犮儲鏁禒?
-     */
+    // Session is still open and not expired.
     public boolean isPaymentPending() {
         return "open".equals(status) && !isExpired();
     }
 
-    /**
-     * 閼惧嘲褰囩€广垺鍩涙慨鎾虫倳閿涘牅绱崗鍫滅矤鐠囷附鍎忛懢宄板絿閿?
-     */
+    public Instant createdAtInstant() {
+        if (createdAt == null) {
+            createdAt = ProviderTimeMapper.toInstant(created);
+        }
+        return createdAt;
+    }
+
+    public LocalDateTime createdAtUtc() {
+        return ProviderTimeMapper.toUtcLocalDateTime(createdAtInstant());
+    }
+
+    public Instant expiresAtInstant() {
+        if (expiresAtTime == null) {
+            expiresAtTime = ProviderTimeMapper.toInstant(expiresAt);
+        }
+        return expiresAtTime;
+    }
+
+    public LocalDateTime expiresAtUtc() {
+        return ProviderTimeMapper.toUtcLocalDateTime(expiresAtInstant());
+    }
+
+    // Prefer customer_details.name when present.
     public String getCustomerName() {
         if (customerDetails != null && customerDetails.name != null) {
             return customerDetails.name;
@@ -219,9 +217,7 @@ public class ProviderSession {
         return null;
     }
 
-    /**
-     * 閼惧嘲褰囨稉鏄忣洣闁喚顔堥敍鍫滅喘閸忓牏楠囬敍姝漸stomerEmail > customerDetails.email閿?
-     */
+    // Prefer customerEmail, then fallback to customer_details.email.
     public String getPrimaryEmail() {
         if (customerEmail != null && !customerEmail.isEmpty()) {
             return customerEmail;
@@ -231,7 +227,4 @@ public class ProviderSession {
         }
         return null;
     }
-
-    // ============ 閹碘偓閺堝鐡у▓鐢垫畱 getters and setters ============
-    // ... (閻胶鏆愰敍灞肩稻闂団偓鐟曚礁瀵橀崥顐ｅ閺堝鐡у▓鐢垫畱getter/setter)
 }

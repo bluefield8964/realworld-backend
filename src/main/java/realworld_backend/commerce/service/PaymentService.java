@@ -1,9 +1,9 @@
 package realworld_backend.commerce.service;
 
-import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import realworld_backend.commerce.service.core.PaymentChannelException;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
 import realworld_backend.commerce.model.Payment;
@@ -26,24 +26,36 @@ public class PaymentService {
     /**
      * Initial ledger row before Stripe session creation.
      */
-    public void recordInit(String orderNo) {
+    public void recordInit(String orderNo,String provider) {
         Payment payment = new Payment();
         payment.setOrderNo(orderNo);
         payment.setStatus(PaymentStatus.INIT);
-        payment.setProvider("Stripe");
+        payment.setProvider(provider);
         paymentRepository.save(payment);
     }
 
     /**
      * Persist Stripe session-create failure details.
      */
-    public void recordFail(String orderNo, StripeException stripeException) {
+    public void recordFail(String orderNo, PaymentChannelException stripeException) {
         Payment payment = paymentRepository.findByOrderNo(orderNo)
-                .orElseThrow(() -> new BizException(ErrorCode.USER_JSON_ERROR));
+                .orElseThrow(() -> new BizException(ErrorCode.PAYMENT_NOT_FOUND));
         payment.setStatus(PaymentStatus.FAILED);
         payment.setErrorMsg(stripeException.getMessage());
-        payment.setCode(stripeException.getCode());
+        payment.setCode(stripeException.getErrorCode());
         payment.setRequestId(stripeException.getRequestId());
+        paymentRepository.save(payment);
+    }
+
+
+    /**
+     * Persist Stripe session-create failure details.
+     */
+    public void recordFailEnding(Payment payment,PaymentStatus status, String eventType) {
+
+        payment.setStatus(status);
+        payment.setErrorMsg(eventType);
+
         paymentRepository.save(payment);
     }
 
@@ -52,7 +64,7 @@ public class PaymentService {
      */
     public void recordProcessing(String orderNo, String sessionId) {
         Payment payment = paymentRepository.findByOrderNo(orderNo)
-                .orElseThrow(() -> new BizException(ErrorCode.USER_JSON_ERROR));
+                .orElseThrow(() -> new BizException(ErrorCode.PAYMENT_NOT_FOUND));
         payment.setSessionId(sessionId);
         payment.setStatus(PaymentStatus.PROCESSING);
         paymentRepository.save(payment);
@@ -63,7 +75,7 @@ public class PaymentService {
      */
     public void recordPaying(String orderNo, String sessionId) {
         Payment payment = paymentRepository.findByOrderNo(orderNo)
-                .orElseThrow(() -> new BizException(ErrorCode.USER_JSON_ERROR));
+                .orElseThrow(() -> new BizException(ErrorCode.PAYMENT_NOT_FOUND));
         payment.setSessionId(sessionId);
         payment.setStatus(PaymentStatus.PAYING);
         paymentRepository.save(payment);
@@ -79,6 +91,10 @@ public class PaymentService {
             log.info("payment:{} not found", sessionId);
             return null;
         }
+    }
+    public int markPaidIfNotPaid(String sessionId) {
+
+        return paymentRepository.markPaidIfNotPaid(sessionId);
     }
 
     public void saveReconcilePayment(Payment payment) {

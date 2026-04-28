@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import realworld_backend.auth.model.User;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
+@Table(name = "comment")
 @AllArgsConstructor
 @Builder
 
@@ -24,7 +24,7 @@ public class Comment {
     private String body;
 
     @ManyToOne
-    private User author;
+    private UserProfile userProfile;
 
     @ManyToOne
     private Article article;

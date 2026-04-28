@@ -1,14 +1,14 @@
 package realworld_backend.commerce.service.core;
 
 import org.springframework.http.HttpStatus;
-import realworld_backend.commerce.model.AbnormalOrderStatus;
-import realworld_backend.commerce.model.StripeEventStatus;
+import realworld_backend.commerce.model.log.AbnormalOrderType;
+import realworld_backend.commerce.model.EventStatus;
 
 public record WebhookDecision(
         boolean terminal,
-        StripeEventStatus stripeEventStatus,
+        EventStatus eventStatus,
         HttpStatus httpStatus,
-        boolean upsertAbnormal,
-        AbnormalOrderStatus abnormalOrderStatus
+        boolean needUpsertAbnormal,
+        AbnormalOrderType abnormalOrderType
 ) {
 }

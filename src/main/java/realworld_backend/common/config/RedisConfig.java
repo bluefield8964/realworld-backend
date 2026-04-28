@@ -17,10 +17,10 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
 
-        // key 鎼村繐鍨崠?
+        // Serialize redis key as plain string
         template.setKeySerializer(RedisSerializer.string());
 
-        // value 鎼村繐鍨崠鏍电礉閻劍鏌婇惃?Generic Jackson 閺囧じ鍞?
+        // Serialize value as JSON for object payloads
         template.setValueSerializer(RedisSerializer.json());
 
         template.setHashKeySerializer(RedisSerializer.string());

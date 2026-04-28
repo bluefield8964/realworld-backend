@@ -27,8 +27,8 @@ public class CommentResponse {
         dto.updatedAt = comment.getUpdatedAt().toString();
 
         dto.author = AuthorResponse.from(
-                comment.getAuthor(),
-                following ? Set.of(comment.getAuthor().getId()) : Set.of()
+                comment.getUserProfile(),
+                following ? Set.of(comment.getUserProfile().getId()) : Set.of()
         );
 
         return dto;

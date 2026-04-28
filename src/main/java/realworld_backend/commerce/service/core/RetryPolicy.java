@@ -1,11 +1,11 @@
 package realworld_backend.commerce.service.core;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface RetryPolicy {
-    LocalDateTime reconcileNextRetryAt(int attempts, LocalDateTime now);
+    Instant reconcileNextRetryAt(int attempts, Instant now);
     boolean exhausted(int attempts);
-        LocalDateTime mainStreamNextRetryAt(int attempts, LocalDateTime now);
+    Instant mainStreamNextRetryAt(int attempts, Instant now);
 
 }
 

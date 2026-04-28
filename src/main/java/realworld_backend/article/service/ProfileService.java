@@ -3,25 +3,28 @@ package realworld_backend.article.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import realworld_backend.article.model.Follow;
+import realworld_backend.article.model.UserProfile;
+import realworld_backend.article.repository.FollowRepository;
+import realworld_backend.article.repository.UserProfileRepository;
+import realworld_backend.auth.api.request.CurrentAuthUser;
+import realworld_backend.common.dto.responseBody.ProfileResponse;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
-import realworld_backend.common.dto.responseBody.ProfileResponse;
-import realworld_backend.article.model.Follow;
-import realworld_backend.auth.model.User;
-import realworld_backend.article.repository.FollowRepository;
-import realworld_backend.auth.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
     private final FollowRepository followRepository;
-    private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
-    public ProfileResponse getProfile(String username, User currentUser) {
-        User following = userRepository.findByUsername(username).orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_DOES_NOT_EXIT));
-        ProfileResponse profileResponse = new ProfileResponse();
+    public ProfileResponse getProfile(String username, CurrentAuthUser currentUser) {
+        UserProfile following = userProfileRepository.findByUsername(username)
+                .orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_NOT_FOUND));
+        ProfileResponse profileResponse = new ProfileResponse(following);
         if (currentUser != null) {
-            boolean existsByFollowerIdAndFollowingId = followRepository.existsByFollowerIdAndFollowingId(following.getId(), currentUser.getId());
+            boolean existsByFollowerIdAndFollowingId =
+                    followRepository.existsByFollowerIdAndFollowingId(currentUser.userId(), following.getId());
             profileResponse.setFollowing(existsByFollowerIdAndFollowingId);
         } else {
             profileResponse.setFollowing(false);
@@ -29,15 +32,18 @@ public class ProfileService {
         return profileResponse;
     }
 
-    public ProfileResponse follow(String username, User currentUser) {
-        User following = userRepository.findByUsername(username).orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_DOES_NOT_EXIT));
-        if (currentUser.getId().equals(following.getId())) {
-            throw new BizException(ErrorCode.CAN_NOT_FOLLOW_OR_UNFOLLOW_YOURSELF);
+    public ProfileResponse follow(String username, CurrentAuthUser currentUser) {
+        UserProfile following = userProfileRepository.findByUsername(username)
+                .orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_NOT_FOUND));
+        if (currentUser.userId().equals(following.getId())) {
+            throw new BizException(ErrorCode.CANNOT_FOLLOW_SELF);
         }
-        boolean exists = followRepository.existsByFollowerIdAndFollowingId(currentUser.getId(), following.getId());
+        boolean exists = followRepository.existsByFollowerIdAndFollowingId(currentUser.userId(), following.getId());
         if (!exists) {
+            UserProfile follower = userProfileRepository.findById(currentUser.userId())
+                    .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
             Follow follow = new Follow();
-            follow.setFollower(currentUser);
+            follow.setFollower(follower);
             follow.setFollowing(following);
             followRepository.save(follow);
         }
@@ -46,17 +52,17 @@ public class ProfileService {
         return profile;
     }
 
-    public ProfileResponse unfollow(String username, User currentUser) {
-        User following = userRepository.findByUsername(username).orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_DOES_NOT_EXIT));
-        if (currentUser.getId().equals(following.getId())) {
-            throw new BizException(ErrorCode.CAN_NOT_FOLLOW_OR_UNFOLLOW_YOURSELF);
+    public ProfileResponse unfollow(String username, CurrentAuthUser currentUser) {
+        UserProfile following = userProfileRepository.findByUsername(username)
+                .orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_NOT_FOUND));
+        if (currentUser.userId().equals(following.getId())) {
+            throw new BizException(ErrorCode.CANNOT_FOLLOW_SELF);
         }
         // find out  follow relationship
-        followRepository.deleteByFollowerIdAndFollowingId(currentUser.getId(), following.getId());
+        followRepository.deleteByFollowerIdAndFollowingId(currentUser.userId(), following.getId());
         ProfileResponse profileResponse = new ProfileResponse(following);
         profileResponse.setFollowing(false);
         return profileResponse;
 
     }
 }
-

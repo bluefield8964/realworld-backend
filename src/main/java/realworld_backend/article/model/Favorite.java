@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import realworld_backend.auth.model.User;
 
 import java.time.LocalDateTime;
 
@@ -24,18 +23,16 @@ public class Favorite {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 鐠嬩焦鏁归挊?
+    // User who favorited the article.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserProfile user;
 
-    // 閺€鎯版閸濐亞鐦掗弬鍥╃彿
+    // Favorited article.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id", nullable = false)
     private Article article;
 
-    // 閺€鎯版閺冨爼妫块敍鍫滀簰閸氬骸褰叉禒銉﹀笓鎼?/ 閹恒劏宕橀悽顭掔礆
+    // Favorite creation timestamp.
     private LocalDateTime createdAt;
-
-
 }

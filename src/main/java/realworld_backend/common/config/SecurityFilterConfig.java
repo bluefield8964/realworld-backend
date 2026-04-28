@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import realworld_backend.common.security.JwtAccessDeniedEntryPoint;
 import realworld_backend.common.security.JwtAuthenticationEntryPoint;
@@ -32,7 +33,11 @@ public class SecurityFilterConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/homePage", "/api/users", "/api/webhook/**").permitAll()
+                        .requestMatchers("/login", "/homePage", "/api/users", "/api/webhook/**","/auth/users/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/articles/*/comments").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/profiles/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tags").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)

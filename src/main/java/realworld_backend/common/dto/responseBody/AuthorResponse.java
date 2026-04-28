@@ -1,7 +1,7 @@
 package realworld_backend.common.dto.responseBody;
 
 import lombok.Data;
-import realworld_backend.auth.model.User;
+import realworld_backend.article.model.UserProfile;
 
 import java.util.Set;
 
@@ -15,7 +15,7 @@ public class AuthorResponse {
     private String image;
     private boolean following;
 
-    public static AuthorResponse from(User author, Set<Long> followingSet) {
+    public static AuthorResponse from(UserProfile author, Set<Long> followingSet) {
 
         AuthorResponse dto = new AuthorResponse();
 

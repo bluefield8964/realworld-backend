@@ -1,0 +1,201 @@
+﻿# Register empty username
+POST {{host}}/api/users
+{
+  "user": {
+    "username": "",
+    "email": "ea_blank_{{uid}}@test.com",
+    "password": "password123"
+  }
+}
+HTTP 422
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.username[0]" == "can't be blank"
+
+# Register empty email
+POST {{host}}/api/users
+{
+  "user": {
+    "username": "ea_blank_{{uid}}",
+    "email": "",
+    "password": "password123"
+  }
+}
+HTTP 422
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.email[0]" == "can't be blank"
+
+# Register empty password
+POST {{host}}/api/users
+{
+  "user": {
+    "username": "ea_blankp_{{uid}}",
+    "email": "ea_blankp_{{uid}}@test.com",
+    "password": ""
+  }
+}
+HTTP 422
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.password[0]" == "can't be blank"
+
+# Register valid user for duplicate and login tests
+POST {{host}}/api/users
+{
+  "user": {
+    "username": "ea_dup_{{uid}}",
+    "email": "ea_dup_{{uid}}@test.com",
+    "password": "password123"
+  }
+}
+HTTP 201
+[Captures]
+token: jsonpath "$.data.user.token"
+
+# Register duplicate username
+POST {{host}}/api/users
+{
+  "user": {
+    "username": "ea_dup_{{uid}}",
+    "email": "ea_dup2_{{uid}}@test.com",
+    "password": "password123"
+  }
+}
+HTTP 409
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.username[0]" == "has already been taken"
+
+# Register duplicate email
+POST {{host}}/api/users
+{
+  "user": {
+    "username": "ea_dup2_{{uid}}",
+    "email": "ea_dup_{{uid}}@test.com",
+    "password": "password123"
+  }
+}
+HTTP 409
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.email[0]" == "has already been taken"
+
+# Login empty email
+POST {{host}}/api/users/login
+{
+  "user": {
+    "email": "",
+    "password": "password123"
+  }
+}
+HTTP 422
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.email[0]" == "can't be blank"
+
+# Login empty password
+POST {{host}}/api/users/login
+{
+  "user": {
+    "email": "ea_dup_{{uid}}@test.com",
+    "password": ""
+  }
+}
+HTTP 422
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.password[0]" == "can't be blank"
+
+# Login wrong password
+POST {{host}}/api/users/login
+{
+  "user": {
+    "email": "ea_dup_{{uid}}@test.com",
+    "password": "wrongpassword"
+  }
+}
+HTTP 401
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.credentials[0]" == "invalid"
+
+# GET /user no auth
+GET {{host}}/api/user
+HTTP 401
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.token[0]" == "is missing"
+
+# PUT /user no auth
+PUT {{host}}/api/user
+{
+  "user": {
+    "bio": "test"
+  }
+}
+HTTP 401
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.errors.token[0]" == "is missing"
+
+# Update email to empty string - should reject
+PUT {{host}}/api/user
+Authorization: Bearer {{token}}
+{
+  "user": {
+    "email": ""
+  }
+}
+HTTP 422
+
+# Update username to empty string - should reject
+PUT {{host}}/api/user
+Authorization: Bearer {{token}}
+{
+  "user": {
+    "username": ""
+  }
+}
+HTTP 422
+
+# Update email to null - should reject
+PUT {{host}}/api/user
+Authorization: Bearer {{token}}
+{
+  "user": {
+    "email": null
+  }
+}
+HTTP 422
+
+# Update username to null - should reject
+PUT {{host}}/api/user
+Authorization: Bearer {{token}}
+{
+  "user": {
+    "username": null
+  }
+}
+HTTP 422
+

@@ -2,7 +2,7 @@ spring:
   profiles:
     active: local
   datasource:
-    url: jdbc:mysql://localhost:3306/realworld?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/realworld?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: lention
   application:

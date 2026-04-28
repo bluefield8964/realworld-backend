@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import realworld_backend.commerce.service.core.RetryPolicy;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 public class RetryPolicyImpl implements RetryPolicy {
@@ -18,9 +18,9 @@ public class RetryPolicyImpl implements RetryPolicy {
 
 
     @Override
-    public LocalDateTime mainStreamNextRetryAt(int attempts, LocalDateTime now) {
+    public Instant mainStreamNextRetryAt(int attempts, Instant now) {
         if (attempts <= 2) {
-            return now.plus(PROCESSING_STALE_SEC.multipliedBy(attempts));
+            return now.plus(PROCESSING_STALE_SEC);
         } else {
             return now.plus(PROCESSING_STALE_MIN.multipliedBy(attempts));
         }
@@ -28,7 +28,7 @@ public class RetryPolicyImpl implements RetryPolicy {
     }
 
     @Override
-    public LocalDateTime reconcileNextRetryAt(int attempts, LocalDateTime now) {
+    public Instant reconcileNextRetryAt(int attempts, Instant now) {
 
         return now.plus(RECONCILE_STALE_MIN.multipliedBy(attempts));
     }

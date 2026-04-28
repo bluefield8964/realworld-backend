@@ -23,7 +23,7 @@ public class JwtAuthenticationFilter {
 //
 //        String header = request.getHeader("Authorization");
 //        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        // 1. No token 閳?anonymous
+//        // 1. No token means anonymous request
 //        if (header == null || !header.startsWith("Token ")) {
 //            filterChain.doFilter(request, response);
 //            return;
@@ -67,7 +67,7 @@ public class JwtAuthenticationFilter {
 //            );
 //        }
 //        // construct authentic object
-//        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, authorities );// 閺夊啴妾洪敍鍫濇倵闂堛垹鍟€閸旂媴绱?
+//        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, authorities );// Build authenticated principal
 //        //setGlobleContext
 //        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 //        filterChain.doFilter(request, response);

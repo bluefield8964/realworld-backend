@@ -4,19 +4,16 @@ package realworld_backend.auth.security;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
+import realworld_backend.auth.domain.model.UserAuthProfile;
 import realworld_backend.common.exception.ErrorCode;
 import realworld_backend.common.exception.TokenExpiredException;
 import realworld_backend.common.exception.TokenInvalidException;
-import realworld_backend.auth.model.User;
 
 import java.text.ParseException;
 import java.time.Duration;
@@ -34,17 +31,17 @@ public class TokenTool {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-
-    public String generateToken(User user) {
+    public String generateAuthToken(UserAuthProfile user,String sessionId) {
         Instant now = Instant.now();
         String oldToken = (String) redisTemplate.opsForValue().get("Bearer_id:" + user.getId());
         if (oldToken != null) {
             redisTemplate.delete("Bearer:" + oldToken);
         }
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(user.getEmail())
-                .claim("userId", user.getId())
+                .subject(user.getId().toString())
                 .claim("username", user.getUsername())
+                .claim("sessionId",sessionId)
+                .claim("id",user.getId())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(3600))
                 .build();
@@ -58,37 +55,5 @@ public class TokenTool {
         redisTemplate.opsForValue().set("Bearer_id:" + user.getId(), tokenValue, Duration.ofHours(1));
         return tokenValue;
     }
-
-
-    public JWTClaimsSet gainJwt(String token) {
-
-        try {
-            SignedJWT jwt = SignedJWT.parse(token);
-            JWTClaimsSet jwtClaimsSet = jwt.getJWTClaimsSet();
-            if (jwtClaimsSet.getExpirationTime() != null && jwtClaimsSet.getExpirationTime().before(new Date())) {
-                throw new TokenExpiredException(TOKEN_EXPIRED);
-            }
-            return jwtClaimsSet;
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } catch (
-                RuntimeException e) { // jwtDecoder probably throw this ex while token was change or token got some abnormal situation
-            throw new TokenInvalidException(ErrorCode.TOKEN_INVALID);
-        }
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    public long tokenRemainingTime(String token) throws ParseException {
-        SignedJWT jwt = SignedJWT.parse(token);
-        Date expirationTime = jwt.getJWTClaimsSet().getExpirationTime();
-        long now = System.currentTimeMillis();
-        return (expirationTime.getTime() - now) / 1000;
-    }
-
-
-}
+  }
 

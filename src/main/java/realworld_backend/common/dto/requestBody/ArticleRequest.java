@@ -11,27 +11,28 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * Request body wrapper for article create and update endpoints.
+ */
 public class ArticleRequest  {
     @JsonProperty("article")
-    // DTO getters & setters
-    private articleAcceptor article;
+    // Preserve the RealWorld payload shape: { "article": { ... } }.
+    private ArticlePayload article;
 
     @Setter
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class articleAcceptor {
+    /**
+     * Inner payload that carries mutable article fields.
+     */
+    public static class ArticlePayload {
         private String title;
-
         private String description;
-
         private String slug;
-
         private String body;
-        // taglist cant be null
+        // Tag names attached to the article payload.
         private Set<String> tagList;
     }
-
-
 }
 

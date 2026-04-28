@@ -2,103 +2,178 @@ package realworld_backend.commerce.model.core;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.stripe.model.checkout.Session;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import realworld_backend.commerce.service.core.ProviderTimeMapper;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckoutSessionData {
 
-    public static CheckoutSessionData generateStripeCheckoutSessionData(Session stripe) {
-        if (stripe == null) {
-            throw new IllegalArgumentException("stripe session must not be null");
+    // Common checkout fields
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("mode")
+    private String mode; // payment / subscription / setup
+
+    @JsonProperty("status")
+    private String status; // open / complete / expired
+
+    @JsonProperty("payment_status")
+    private String paymentStatus; // paid / unpaid / no_payment_required
+
+    @JsonProperty("url")
+    private String url;
+
+    @JsonProperty("amount_subtotal")
+    private Long amountSubtotal;
+
+    @JsonProperty("amount_total")
+    private Long amountTotal;
+
+    @JsonProperty("currency")
+    private String currency;
+
+    @JsonProperty("customer")
+    private String customer;
+
+    @JsonProperty("customer_email")
+    private String customerEmail;
+
+    @JsonProperty("client_reference_id")
+    private String clientReferenceId;
+
+    @JsonProperty("metadata")
+    private Map<String, String> metadata;
+
+    @JsonProperty("created")
+    private Long created;
+    private transient Instant createdAt;
+
+    @JsonProperty("expires_at")
+    private Long expiresAt;
+    private transient Instant expiresAtTime;
+
+    @JsonProperty("success_url")
+    private String successUrl;
+
+    @JsonProperty("cancel_url")
+    private String cancelUrl;
+
+    @JsonProperty("object")
+    private String object;
+
+    @JsonProperty("livemode")
+    private Boolean livemode;
+
+    @JsonProperty("customer_details")
+    private CustomerDetails customerDetails;
+
+    // Payment/setup mode related fields
+    @JsonProperty("payment_intent")
+    private String paymentIntent;
+
+    @JsonProperty("setup_intent")
+    private String setupIntent;
+
+    @JsonProperty("payment_method_types")
+    private List<String> paymentMethodTypes;
+
+    // Subscription mode related fields
+    @JsonProperty("subscription")
+    private String subscription;
+
+    @JsonProperty("invoice")
+    private String invoice;
+
+    // Local helper flag for service logic
+    private Boolean subscriptionMode;
+
+    // Maps one-time payment Checkout Session (mode=payment) to local DTO.
+    public static CheckoutSessionData generateCheckoutSessionData(Session session) {
+        if (session == null) {
+            throw new IllegalArgumentException("session must not be null");
         }
-        return CheckoutSessionData.builder()
-                .id(stripe.getId())
-                .url(stripe.getUrl())
-                .paymentStatus(stripe.getPaymentStatus())
-                .status(stripe.getStatus())
-                .amountTotal(stripe.getAmountTotal())
-                .currency(stripe.getCurrency())
-                .customer(stripe.getCustomer())
-                .metadata(stripe.getMetadata())
-                .paymentIntent(stripe.getPaymentIntent())
+        if (!"payment".equals(session.getMode())) {
+            throw new IllegalArgumentException("generateCheckoutSessionData only supports payment mode");
+        }
+
+        return baseBuilder(session)
+                .paymentIntent(session.getPaymentIntent())
+                .setupIntent(session.getSetupIntent())
+                .subscription(null)
+                .invoice(null)
+                .subscriptionMode(false)
                 .build();
     }
 
-    // ============ 閺堚偓闁插秷顩﹂惃鍕摟濞?============
+    // Maps subscription Checkout Session for subscription service usage.
+    public static CheckoutSessionData generateSubscriptionSessionData(Session session) {
+        if (session == null) {
+            throw new IllegalArgumentException("session must not be null");
+        }
 
-    @JsonProperty("id")
-    private String id;                      // Session ID - 閸烆垯绔撮弽鍥槕缁?
+        return baseBuilder(session)
+                .subscription(session.getSubscription())
+                .invoice(session.getInvoice())
+                .paymentIntent(session.getPaymentIntent()) // may be null in subscription mode
+                .setupIntent(session.getSetupIntent())
+                .subscriptionMode(true)
+                .build();
+    }
 
-    @JsonProperty("status")
-    private String status;                  // "open", "complete", "expired"
+    private static CheckoutSessionDataBuilder baseBuilder(Session session) {
+        return CheckoutSessionData.builder()
+                .id(session.getId())
+                .mode(session.getMode())
+                .status(session.getStatus())
+                .paymentStatus(session.getPaymentStatus())
+                .url(session.getUrl())
+                .amountSubtotal(session.getAmountSubtotal())
+                .amountTotal(session.getAmountTotal())
+                .currency(session.getCurrency())
+                .customer(session.getCustomer())
+                .customerEmail(session.getCustomerEmail())
+                .clientReferenceId(session.getClientReferenceId())
+                .metadata(session.getMetadata())
+                .created(session.getCreated())
+                .createdAt(ProviderTimeMapper.toInstant(session.getCreated()))
+                .expiresAt(session.getExpiresAt())
+                .expiresAtTime(ProviderTimeMapper.toInstant(session.getExpiresAt()))
+                .successUrl(session.getSuccessUrl())
+                .cancelUrl(session.getCancelUrl())
+                .object(session.getObject())
+                .livemode(session.getLivemode())
+                .paymentMethodTypes(session.getPaymentMethodTypes())
+                .customerDetails(mapCustomerDetails(session));
+    }
 
-    @JsonProperty("payment_status")
-    private String paymentStatus;           // "paid", "unpaid", "no_payment_required"
+    private static CustomerDetails mapCustomerDetails(Session session) {
+        if (session.getCustomerDetails() == null) {
+            return null;
+        }
 
-    @JsonProperty("url")
-    private String url;                     // 闁插秴鐣鹃崥鎴濆煂閻ㄥ嫮绮ㄧ拹锕傘€夐棃顢籖L
+        return CustomerDetails.builder()
+                .email(session.getCustomerDetails().getEmail())
+                .name(session.getCustomerDetails().getName())
+                .phone(session.getCustomerDetails().getPhone())
+                .build();
+    }
 
-    // ============ 娑撴艾濮熼崗鎶芥暛鐎涙顔?============
-
-    @JsonProperty("amount_total")
-    private Long amountTotal;               // 閹鍣炬０婵撶礄閸掑棴绱?
-
-    @JsonProperty("currency")
-    private String currency;                // 鐠愌冪娴狅絿鐖?
-
-    @JsonProperty("customer")
-    private String customer;                // 鐎广垺鍩汭D
-
-    @JsonProperty("customer_email")
-    private String customerEmail;           // 鐎广垺鍩涢柇顔绢唸
-
-    @JsonProperty("payment_intent")
-    private String paymentIntent;           // PaymentIntent ID
-
-    @JsonProperty("client_reference_id")
-    private String clientReferenceId;       // 娴ｇ姷娈戠拋銏犲礋瀵洜鏁D
-
-    @JsonProperty("metadata")
-    private Map<String, String> metadata;   // 閼奉亜鐣炬稊澶夌瑹閸斺剝鏆熼幑?
-
-    // ============ 閺冨爼妫跨€涙顔?============
-
-    @JsonProperty("created")
-    private Long created;                   // 閸掓稑缂撻弮鍫曟？閹?
-
-    @JsonProperty("expires_at")
-    private Long expiresAt;                 // 鏉╁洦婀￠弮鍫曟？閹?
-
-    // ============ URL鐎涙顔?============
-
-    @JsonProperty("success_url")
-    private String successUrl;              // 閹存劕濮涙い鐢告桨URL
-
-    @JsonProperty("cancel_url")
-    private String cancelUrl;               // 閸欐牗绉锋い鐢告桨URL
-
-    // ============ 閸欘垶鈧绲鹃張澶屾暏閻ㄥ嫬鐡у▓?============
-
-    @JsonProperty("mode")
-    private String mode;                    // "payment", "setup", "subscription"
-
-    @JsonProperty("object")
-    private String object;                  // 閸ュ搫鐣鹃崐?"checkout.session"
-
-    @JsonProperty("livemode")
-    private Boolean livemode;               // 閺勵垰鎯侀悽鐔堕獓閻滎垰顣?
-
-    @JsonProperty("customer_details")
-    private CustomerDetails customerDetails; // 鐎广垺鍩涚拠锔剧矎娣団剝浼?
-
-    @JsonProperty("subscription")
-    private String subscription;            // 鐠併垽妲処D閿涘牐顓归梼鍛佸蹇旀閿?
-
-    // 瀹撳苯顨滅猾?
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CustomerDetails {
         @JsonProperty("email")
         private String email;
@@ -108,7 +183,27 @@ public class CheckoutSessionData {
 
         @JsonProperty("phone")
         private String phone;
+    }
 
+    public Instant createdAtInstant() {
+        if (createdAt == null) {
+            createdAt = ProviderTimeMapper.toInstant(created);
+        }
+        return createdAt;
+    }
+
+    public LocalDateTime createdAtUtc() {
+        return ProviderTimeMapper.toUtcLocalDateTime(createdAtInstant());
+    }
+
+    public Instant expiresAtInstant() {
+        if (expiresAtTime == null) {
+            expiresAtTime = ProviderTimeMapper.toInstant(expiresAt);
+        }
+        return expiresAtTime;
+    }
+
+    public LocalDateTime expiresAtUtc() {
+        return ProviderTimeMapper.toUtcLocalDateTime(expiresAtInstant());
     }
 }
-

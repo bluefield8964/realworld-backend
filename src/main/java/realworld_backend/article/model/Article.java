@@ -22,13 +22,13 @@ import java.util.Set;
 public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // 娑撳鏁?
+    private Long id;  // Primary key
     private String title;
     private String description;
     @Column(columnDefinition = "TEXT")
     private String body;
 
-    // 鐚?core many to many
+    // Core relation: article <-> tags
     @ManyToMany
     @JoinTable(
             name = "article_tags",
@@ -37,7 +37,7 @@ public class Article {
     )
     private Set<Tag> tagList = new HashSet<>();
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id") // 婢舵牠鏁?
+    @JoinColumn(name = "author_id") // Author foreign key
     private Author author;
     @Column(unique = true)
     private String slug;

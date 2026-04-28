@@ -6,7 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import realworld_backend.article.model.Article;
 import realworld_backend.article.model.Favorite;
-import realworld_backend.auth.model.User;
+import realworld_backend.article.model.UserProfile;
+import realworld_backend.auth.api.request.CurrentAuthUser;
 import realworld_backend.article.repository.ArticleRepository;
 import realworld_backend.article.repository.FavoriteRepository;
 
@@ -24,7 +25,7 @@ public class FavoriteService {
     private final ArticleRepository articleRepository;
 
     @Transactional
-    public void favoriteArticle(User user, Article article) {
+    public void favoriteArticle(UserProfile user, Article article) {
 
         // prevent favorite overtimes
         boolean exists = favoriteRepository.existsByUserIdAndArticleId(user.getId(), article.getId());
@@ -37,13 +38,13 @@ public class FavoriteService {
 
         favoriteRepository.save(favorite);
 
-        // 鐚?閸氬本顒為弴瀛樻煀鐠佲剝鏆熼敍鍫ヤ缉閸?count 閺屻儴顕楅敍?
+
         article.setFavoritesCount(article.getFavoritesCount() + 1);
         articleRepository.save(article);
     }
 
     @Transactional
-    public void unfavoriteArticle(User user, Article article) {
+    public void unfavoriteArticle(UserProfile user, Article article) {
 
         favoriteRepository.deleteByUserIdAndArticleId(user.getId(), article.getId());
 
@@ -52,19 +53,37 @@ public class FavoriteService {
     }
 
     //get user's favorite articles Id
-    public Set<Long> getFavoritedArticleIds(User user, List<Long> articleIds) {
+    public Set<Long> getFavoritedArticleIds(CurrentAuthUser user, List<Article> articles) {
+        Set<Long> favoritedIds = Collections.emptySet();
+
+        List<Long> articleIds = articles.stream()
+                .map(Article::getId)
+                .toList();
+
 
         if (user == null) return Collections.emptySet();
 
         List<Long> ids = favoriteRepository
-                .findArticleIdsByUserIdAndArticleIds(user.getId(), articleIds);
+                .findArticleIdsByUserIdAndArticleIds(user.userId(), articleIds);
 
-        return new HashSet<>(ids);
+
+        favoritedIds=new HashSet<>(ids);
+        return favoritedIds;
     }
 
-    public boolean checkFavorite(User user, Article article) {
-        // 闂冨弶顒涢柌宥咁槻閺€鎯版
-        return favoriteRepository.existsByUserIdAndArticleId(user.getId(), article.getId());
+
+    public boolean checkFavorite(CurrentAuthUser user, Article article) {
+        if (user == null || user.userId() == null) {
+            return false;
+        }
+        return favoriteRepository.existsByUserIdAndArticleId(user.userId(), article.getId());
+    }
+
+    public boolean isFavoritedByUser(Long userId, Long articleId) {
+        if (userId == null || articleId == null) {
+            return false;
+        }
+        return favoriteRepository.existsByUserIdAndArticleId(userId, articleId);
     }
 
 }

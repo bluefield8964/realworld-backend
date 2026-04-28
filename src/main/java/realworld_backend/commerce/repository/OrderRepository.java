@@ -18,13 +18,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNo(String orderNo);
 
     List<Order> findTop100ByStatusOrderByCreatedAtAsc(OrderStatus status);
-    Optional<Order> findByStripeSessionId(String sessionId);
+
+    Optional<Order> findBySessionId(String sessionId);
 
     @Query("""
-SELECT o FROM Order o
-WHERE o.userId = :userId
-AND o.status IN :statusList
-""")
+            SELECT o FROM Order o
+            WHERE o.userId = :userId
+            AND o.status IN :statusList
+            """)
     Optional<Order> findByUserIdAndStatus(
             @Param("userId") Long userId,
             @Param("statusList") List<OrderStatus> statusList
@@ -33,25 +34,25 @@ AND o.status IN :statusList
     @Modifying
     @Transactional
     @Query("""
-UPDATE Order o
-SET o.status = OrderStatus.PENDING
-WHERE o.orderNo = :orderNo
-AND o.status = OrderStatus.CREATED
-""")
+            UPDATE Order o
+            SET o.status = OrderStatus.PENDING
+            WHERE o.orderNo = :orderNo
+            AND o.status = OrderStatus.CREATED
+            """)
     int lockOrder(@Param("orderNo") String orderNo);
 
 
     @Modifying
     @Query("""
-UPDATE Order o
-SET o.status = OrderStatus.PAID, o.updatedAt = :now
-WHERE o.stripeSessionId = :sessionId
-AND o.status <> OrderStatus.PAID
-""")
+            UPDATE Order o
+            SET o.status = OrderStatus.PAID, o.updatedAt = :now, o.activeKey = null
+            WHERE o.sessionId = :sessionId
+            AND o.status <> OrderStatus.PAID
+            """)
     int markPaidIfNotPaid(@Param("sessionId") String sessionId, @Param("now") LocalDateTime now);
 
     Optional<Order> findByActiveKey(String activeKey);
 
-    Boolean existsByStripeSessionIdAndStatus(String sessionId, OrderStatus orderStatus);
+    Boolean existsBySessionIdAndStatus(String sessionId, OrderStatus orderStatus);
 }
 

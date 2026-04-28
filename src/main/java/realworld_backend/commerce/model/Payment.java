@@ -26,6 +26,7 @@ public class Payment {
     private String sessionId;   // from provider
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     private PaymentStatus status;
 
 

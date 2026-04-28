@@ -1,16 +1,21 @@
 package realworld_backend.common.dto.responseBody;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import realworld_backend.article.model.Article;
 import realworld_backend.article.model.Tag;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArticleResponse {
 
     public ArticleResponse(Article article, String authorName) {
@@ -19,11 +24,14 @@ public class ArticleResponse {
         this.description = article.getDescription();
         this.body = article.getBody();
 
-        this.tagList = article.getTagList().stream().map(Tag::getName).collect(Collectors.toSet());
+        this.tagList = mapTagNames(article);
+        this.authorResponse = new AuthorResponse();
         this.authorResponse.setUsername(authorName);
         this.slug = article.getSlug();
         this.createdAt = article.getCreatedAt();
+        this.updatedAt = article.getUpdatedAt();
         this.favoritesCount = article.getFavoritesCount();
+        this.favorited = false;
     }
 
     public ArticleResponse(Article article) {
@@ -31,7 +39,7 @@ public class ArticleResponse {
         this.title = article.getTitle();
         this.description = article.getDescription();
         this.body = article.getBody();
-        this.tagList = article.getTagList().stream().map(Tag::getName).collect(Collectors.toSet());
+        this.tagList = mapTagNames(article);
         this.slug = article.getSlug();
         this.createdAt = article.getCreatedAt();
         this.updatedAt = article.getUpdatedAt();
@@ -44,7 +52,7 @@ public class ArticleResponse {
         dto.slug = article.getSlug();
         dto.title = article.getTitle();
         dto.description = article.getDescription();
-        dto.tagList = article.getTagList().stream().map(Tag::getName).collect(Collectors.toSet());
+        dto.tagList = mapTagNames(article);
 
         dto.createdAt = article.getCreatedAt();
         dto.updatedAt = article.getUpdatedAt();
@@ -54,7 +62,7 @@ public class ArticleResponse {
         return dto;
     }
 
-    private Long id;  // 娑撳鏁?
+    private Long id;
 
     private String title;
 
@@ -62,8 +70,9 @@ public class ArticleResponse {
 
     private String body;
 
-    private Set<String> tagList;
+    private List<String> tagList;
 
+    @JsonProperty("author")
     private AuthorResponse authorResponse;
 
     private String slug;
@@ -72,6 +81,14 @@ public class ArticleResponse {
     private LocalDateTime updatedAt;
     private Boolean favorited;
     private Long favoritesCount;
+
+    private static List<String> mapTagNames(Article article) {
+        return article.getTagList().stream()
+                .map(Tag::getName)
+                .distinct()
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList());
+    }
 
 }
 

@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import realworld_backend.auth.model.User;
 
 
 @Entity
@@ -21,15 +20,14 @@ public class Follow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 鐠嬩礁鍙у▔銊ュ焼娴?
+    // User who follows another user.
     @ManyToOne
     @JoinColumn(name = "follower_id", nullable = false)
-    private User follower;
+    private UserProfile follower;
 
-    // 鐞氼偄鍙у▔銊ф畱娴?
+    // User being followed.
     @ManyToOne
     @JoinColumn(name = "following_id", nullable = false)
-    private User following;
+    private UserProfile following;
 
 }
-
