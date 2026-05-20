@@ -1,0 +1,11 @@
+package realworld_backend.commerce.model.log;
+
+public enum AbnormalOrderType {
+    ORDER_MISSING,
+    PAYMENT_MISSING,
+    SUBSCRIPTION_MISSING,
+    SUBSCRIPTION_HISTORY_CHANGE_FAIL,
+    EVENT_RETRY_BUDGET_EXHAUSTED,
+    PROVIDER_TERMINAL_FAILURE,
+    PRE_BUSINESS_STUCK
+}

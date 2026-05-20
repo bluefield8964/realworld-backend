@@ -12,13 +12,16 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 
+/**
+ * Logs controller execution cost for regular API requests.
+ */
 @Aspect
 @Component
 @Slf4j
-public class logAspectConfig {
+public class LogAspectConfig {
 
     @Around("execution(* realworld_backend.controller..*(..))")
-    public Object log(ProceedingJoinPoint pjp) throws Throwable {
+    public Object logControllerInvocation(ProceedingJoinPoint pjp) throws Throwable {
 
         ServletRequestAttributes attrs =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -27,15 +30,15 @@ public class logAspectConfig {
             String uri = attrs.getRequest().getRequestURI();
 
             if (uri.startsWith("/api/webhook")) {
-                return pjp.proceed(); // dont make any process
+                return pjp.proceed(); // Skip webhook traffic to avoid noisy logs.
             }
         }
 
 
         long start = System.currentTimeMillis();
         String method = pjp.getSignature().toShortString();
-        Object[] args = pjp.getArgs();  // dont use this list , it could cause serialization
-        Object result = pjp.proceed(); //proceed original method
+        Object[] args = pjp.getArgs();  // Kept for future debugging, but not logged directly.
+        Object result = pjp.proceed(); // Execute the original controller method.
 
         long cost = System.currentTimeMillis() - start;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

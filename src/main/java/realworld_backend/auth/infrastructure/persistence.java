@@ -1,4 +1,7 @@
 package realworld_backend.auth.infrastructure;
 
-public class persistence {
+/**
+ * Placeholder type for the auth persistence package.
+ */
+public class Persistence {
 }
