@@ -1,0 +1,567 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< realworld:realworld-backend >---------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.14:run (default-cli) > test-compile @ realworld-backend >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ realworld-backend ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 27 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ realworld-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ realworld-backend ---
+[INFO] skip non existing resourceDirectory C:\Users\Administrator\Desktop\realworld-backend\realworld-backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ realworld-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.5.14:run (default-cli) < test-compile @ realworld-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.14:run (default-cli) @ realworld-backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.14)
+
+2026-05-29T19:51:01.098+08:00  INFO 41688 --- [realworld-backend] [           main] r.RealworldBackendApplication            : Starting RealworldBackendApplication using Java 26 with PID 41688 (C:\Users\Administrator\Desktop\realworld-backend\realworld-backend\target\classes started by Administrator in C:\Users\Administrator\Desktop\realworld-backend\realworld-backend)
+2026-05-29T19:51:01.099+08:00  INFO 41688 --- [realworld-backend] [           main] r.RealworldBackendApplication            : The following 1 profile is active: "local"
+2026-05-29T19:51:01.974+08:00  INFO 41688 --- [realworld-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-05-29T19:51:01.975+08:00  INFO 41688 --- [realworld-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-29T19:51:02.214+08:00  INFO 41688 --- [realworld-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 232 ms. Found 26 JPA repository interfaces.
+2026-05-29T19:51:02.224+08:00  INFO 41688 --- [realworld-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-05-29T19:51:02.225+08:00  INFO 41688 --- [realworld-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-05-29T19:51:02.253+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.ArticleRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.253+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.AuthorRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.253+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.CommentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.FavoriteRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.FollowRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.RoleRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.TagRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.article.repository.UserProfileRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.auth.repository.AuthAuditLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.auth.repository.AuthRefreshTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.auth.repository.AuthSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.auth.repository.UserAuthProfileRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.254+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.AbnormalOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.255+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.BusinessEventRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.255+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.CustomerSubscriptionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.255+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.EntitlementGrantRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.255+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.FeatureBundleRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.InvoiceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.PaymentErrorLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.PaymentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.PlanProviderMappingRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.ProductRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.SubscriptionHistoryRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.SubscriptionPlanRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface realworld_backend.commerce.repository.WebhookIncidentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-05-29T19:51:02.256+08:00  INFO 41688 --- [realworld-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 0 Redis repository interfaces.
+2026-05-29T19:51:02.735+08:00  INFO 41688 --- [realworld-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-05-29T19:51:02.744+08:00  INFO 41688 --- [realworld-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-29T19:51:02.745+08:00  INFO 41688 --- [realworld-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.54]
+2026-05-29T19:51:02.788+08:00  INFO 41688 --- [realworld-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-29T19:51:02.788+08:00  INFO 41688 --- [realworld-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1664 ms
+2026-05-29T19:51:02.988+08:00  INFO 41688 --- [realworld-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-29T19:51:03.019+08:00  INFO 41688 --- [realworld-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.49.Final
+2026-05-29T19:51:03.039+08:00  INFO 41688 --- [realworld-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-29T19:51:03.219+08:00  INFO 41688 --- [realworld-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-29T19:51:03.239+08:00  INFO 41688 --- [realworld-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-29T19:51:03.410+08:00  INFO 41688 --- [realworld-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@e344f14
+2026-05-29T19:51:03.411+08:00  INFO 41688 --- [realworld-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-29T19:51:03.459+08:00  INFO 41688 --- [realworld-backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.4.9
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-29T19:51:04.300+08:00  INFO 41688 --- [realworld-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-29T19:51:04.435+08:00  INFO 41688 --- [realworld-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-29T19:51:04.648+08:00  INFO 41688 --- [realworld-backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2 (file:/C:/Users/Administrator/.m2/repository/io/netty/netty-common/4.1.132.Final/netty-common-4.1.132.Final.jar)
+WARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+2026-05-29T19:51:06.976+08:00  INFO 41688 --- [realworld-backend] [           main] org.redisson.Version                     : Redisson 3.27.2
+2026-05-29T19:51:07.126+08:00  INFO 41688 --- [realworld-backend] [isson-netty-4-5] o.redisson.connection.ConnectionsHolder  : 1 connections initialized for localhost/127.0.0.1:6380
+2026-05-29T19:51:07.194+08:00  INFO 41688 --- [realworld-backend] [sson-netty-4-20] o.redisson.connection.ConnectionsHolder  : 24 connections initialized for localhost/127.0.0.1:6380
+2026-05-29T19:51:07.343+08:00  WARN 41688 --- [realworld-backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-29T19:51:07.514+08:00  INFO 41688 --- [realworld-backend] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoints beneath base path '/actuator'
+2026-05-29T19:51:07.950+08:00  INFO 41688 --- [realworld-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2026-05-29T19:51:07.958+08:00  INFO 41688 --- [realworld-backend] [           main] r.RealworldBackendApplication            : Started RealworldBackendApplication in 7.178 seconds (process running for 7.442)
+2026-05-29T19:51:09.759+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-29T19:51:09.760+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-29T19:51:09.761+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.username=?
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.email=?
+Hibernate: insert into user_auth_profiles (email,mfa_enabled,password_hash,status,username) values (?,?,?,?,?)
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.username=?
+2026-05-29T19:51:10.640+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] r.a.i.stub.SimpleLoginAttemptService     : login success reset fail count, username=ok469697xx
+Hibernate: select as1_0.id,as1_0.created_at,as1_0.device_id,as1_0.expires_at,as1_0.ip,as1_0.last_accessed_at,as1_0.revoked_at,as1_0.risk_level,as1_0.session_id,as1_0.status,as1_0.user_agent,as1_0.user_id from auth_sessions as1_0 where as1_0.user_id=? and as1_0.device_id=?
+Hibernate: select as1_0.id,as1_0.created_at,as1_0.device_id,as1_0.expires_at,as1_0.ip,as1_0.last_accessed_at,as1_0.revoked_at,as1_0.risk_level,as1_0.session_id,as1_0.status,as1_0.user_agent,as1_0.user_id from auth_sessions as1_0 where as1_0.user_id=? and as1_0.device_id=?
+Hibernate: insert into auth_sessions (created_at,device_id,expires_at,ip,last_accessed_at,revoked_at,risk_level,session_id,status,user_agent,user_id) values (?,?,?,?,?,?,?,?,?,?,?)
+Hibernate: select distinct art1_0.family_id from auth_refresh_tokens art1_0 join auth_sessions as1_0 on art1_0.session_id=as1_0.session_id where as1_0.user_id=? and as1_0.device_id=? and as1_0.status=? and as1_0.revoked_at is null
+Hibernate: insert into auth_refresh_tokens (created_at,expires_at,family_id,parent_id,revoked_at,session_id,token_hash,used_at) values (?,?,?,?,?,?,?,?)
+Hibernate: insert into auth_audit_logs (created_at,device_id,event_type,ip,payload_json,request_id,result,user_agent,user_id) values (?,?,?,?,?,?,?,?,?)
+2026-05-29T19:51:10.728+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] r.a.infrastructure.stub.LogAuditService  : audit eventType=successful login, userId=26, requestId=80e5595c-bafc-4c85-ad38-19eb48174620
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.email=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: insert into users (bio,email,image,user_auth_id,username) values (?,?,?,?,?)
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.email=?
+2026-05-29T19:51:10.901+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-2] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=26, sessionId=37197b7f-3655-49a1-831b-63f78f615365, claims=[sub, sessionId, id, exp, iat, username]
+2026-05-29T19:51:10.906+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-2] r.c.s.e.EntitlementQueryService          : listActiveEntitlements userId=26 size=1
+2026-05-29T19:51:10.917+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-7] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=26, sessionId=37197b7f-3655-49a1-831b-63f78f615365, claims=[sub, sessionId, id, exp, iat, username]
+2026-05-29T19:51:10.921+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-7] r.c.s.e.EntitlementQueryService          : hasAnyBundleAccess userId=26 count=1 allowed=true
+2026-05-29T19:51:10.945+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-4] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=26, sessionId=37197b7f-3655-49a1-831b-63f78f615365, claims=[sub, sessionId, id, exp, iat, username]
+2026-05-29T19:51:10.947+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-4] r.c.s.e.EntitlementQueryService          : hasAnyBundleAccess userId=26 count=1 allowed=true
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select r1_0.user_id,r1_1.id,r1_1.description,r1_1.name from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=?
+Hibernate: select a1_0.id,a1_0.user_id,a1_0.username from authors a1_0 where a1_0.username=?
+Hibernate: insert into authors (user_id,username) values (?,?)
+Hibernate: select t1_0.id,t1_0.name from tags t1_0 where t1_0.name in (?,?)
+Hibernate: insert into articles (author_id,body,created_at,description,favorites_count,slug,title,updated_at) values (?,?,?,?,?,?,?,?)
+Hibernate: insert into article_tags (article_id,tag_id) values (?,?)
+Hibernate: insert into article_tags (article_id,tag_id) values (?,?)
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.username=?
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.email=?
+Hibernate: insert into user_auth_profiles (email,mfa_enabled,password_hash,status,username) values (?,?,?,?,?)
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.username=?
+2026-05-29T19:51:23.686+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-8] r.a.i.stub.SimpleLoginAttemptService     : login success reset fail count, username=run483098x
+Hibernate: select as1_0.id,as1_0.created_at,as1_0.device_id,as1_0.expires_at,as1_0.ip,as1_0.last_accessed_at,as1_0.revoked_at,as1_0.risk_level,as1_0.session_id,as1_0.status,as1_0.user_agent,as1_0.user_id from auth_sessions as1_0 where as1_0.user_id=? and as1_0.device_id=?
+Hibernate: select as1_0.id,as1_0.created_at,as1_0.device_id,as1_0.expires_at,as1_0.ip,as1_0.last_accessed_at,as1_0.revoked_at,as1_0.risk_level,as1_0.session_id,as1_0.status,as1_0.user_agent,as1_0.user_id from auth_sessions as1_0 where as1_0.user_id=? and as1_0.device_id=?
+Hibernate: insert into auth_sessions (created_at,device_id,expires_at,ip,last_accessed_at,revoked_at,risk_level,session_id,status,user_agent,user_id) values (?,?,?,?,?,?,?,?,?,?,?)
+Hibernate: select distinct art1_0.family_id from auth_refresh_tokens art1_0 join auth_sessions as1_0 on art1_0.session_id=as1_0.session_id where as1_0.user_id=? and as1_0.device_id=? and as1_0.status=? and as1_0.revoked_at is null
+Hibernate: insert into auth_refresh_tokens (created_at,expires_at,family_id,parent_id,revoked_at,session_id,token_hash,used_at) values (?,?,?,?,?,?,?,?)
+Hibernate: insert into auth_audit_logs (created_at,device_id,event_type,ip,payload_json,request_id,result,user_agent,user_id) values (?,?,?,?,?,?,?,?,?)
+2026-05-29T19:51:23.714+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-8] r.a.infrastructure.stub.LogAuditService  : audit eventType=successful login, userId=27, requestId=9d799eae-5fe2-474e-942e-15caf472aa14
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.email=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: insert into users (bio,email,image,user_auth_id,username) values (?,?,?,?,?)
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.email=?
+2026-05-29T19:51:23.827+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-9] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=27, sessionId=b9021d68-5e26-4ba8-a612-0b59a0b73d7e, claims=[sub, sessionId, id, exp, iat, username]
+2026-05-29T19:51:23.829+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-9] r.c.s.e.EntitlementQueryService          : hasAnyBundleAccess userId=27 count=1 allowed=true
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select r1_0.user_id,r1_1.id,r1_1.description,r1_1.name from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=?
+Hibernate: select a1_0.id,a1_0.user_id,a1_0.username from authors a1_0 where a1_0.username=?
+Hibernate: insert into authors (user_id,username) values (?,?)
+Hibernate: select t1_0.id,t1_0.name from tags t1_0 where t1_0.name in (?,?)
+Hibernate: insert into articles (author_id,body,created_at,description,favorites_count,slug,title,updated_at) values (?,?,?,?,?,?,?,?)
+Hibernate: insert into article_tags (article_id,tag_id) values (?,?)
+Hibernate: insert into article_tags (article_id,tag_id) values (?,?)
+2026-05-29T19:51:23.867+08:00  INFO 41688 --- [realworld-backend] [io-8081-exec-10] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=27, sessionId=b9021d68-5e26-4ba8-a612-0b59a0b73d7e, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: insert into comment (article_id,body,created_at,updated_at,user_profile_id) values (?,?,?,?,?)
+2026-05-29T19:51:23.895+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=27, sessionId=b9021d68-5e26-4ba8-a612-0b59a0b73d7e, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select c1_0.id,c1_0.article_id,c1_0.body,c1_0.created_at,c1_0.updated_at,c1_0.user_profile_id from comment c1_0 where c1_0.article_id=? order by c1_0.created_at desc
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.id=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select f1_0.id,f1_0.follower_id,f1_0.following_id from user_follow f1_0 left join users f2_0 on f2_0.id=f1_0.follower_id where f2_0.id=?
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select tl1_0.article_id,tl1_1.id,tl1_1.name from article_tags tl1_0 join tags tl1_1 on tl1_1.id=tl1_0.tag_id where tl1_0.article_id=?
+Hibernate: select a1_0.id,a1_0.user_id,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username,a1_0.username from authors a1_0 join users up1_0 on up1_0.id=a1_0.user_id where a1_0.id=?
+2026-05-29T19:51:23.933+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-7] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=27, sessionId=b9021d68-5e26-4ba8-a612-0b59a0b73d7e, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+2026-05-29T19:51:23.944+08:00 ERROR 41688 --- [realworld-backend] [nio-8081-exec-7] r.a.controller.ArticleControllerAdvice   : BizException occurred on /api/articles/article-483098: code=1501, message=Invalid token
+
+realworld_backend.common.exception.BizException: Invalid token
+	at realworld_backend.article.service.ArticleService.updateArticle(ArticleService.java:192) ~[classes/:na]
+	at realworld_backend.article.service.ArticleService.updateArticle(ArticleService.java:176) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380) ~[spring-tx-6.2.18.jar:6.2.18]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.18.jar:6.2.18]
+	at realworld_backend.article.service.ArticleService$$SpringCGLIB$$0.updateArticle(<generated>) ~[classes/:na]
+	at realworld_backend.article.controller.ArticlesController.updateArticle(ArticlesController.java:95) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.FrameworkServlet.doPut(FrameworkServlet.java:925) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:593) ~[tomcat-embed-core-10.1.54.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.54.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:490) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:351) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:83) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:129) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:125) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:119) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.AuthenticationFilter.doFilterInternal(AuthenticationFilter.java:177) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:158) ~[spring-security-oauth2-resource-server-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:334) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:225) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:319) ~[spring-security-config-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$4(HandlerMappingIntrospector.java:267) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:240) ~[spring-security-config-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:88) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:342) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1797) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:973) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at java.base/java.lang.Thread.run(Thread.java:1516) ~[na:na]
+
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select tl1_0.article_id,tl1_1.id,tl1_1.name from article_tags tl1_0 join tags tl1_1 on tl1_1.id=tl1_0.tag_id where tl1_0.article_id=?
+Hibernate: select a1_0.id,a1_0.user_id,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username,a1_0.username from authors a1_0 join users up1_0 on up1_0.id=a1_0.user_id where a1_0.id=?
+2026-05-29T19:51:23.962+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-6] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=27, sessionId=b9021d68-5e26-4ba8-a612-0b59a0b73d7e, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select c1_0.id,a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at,c1_0.body,c1_0.created_at,c1_0.updated_at,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from comment c1_0 left join articles a1_0 on a1_0.id=c1_0.article_id left join users up1_0 on up1_0.id=c1_0.user_profile_id where c1_0.id=?
+Hibernate: delete from comment where id=?
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select c1_0.id,c1_0.article_id,c1_0.body,c1_0.created_at,c1_0.updated_at,c1_0.user_profile_id from comment c1_0 where c1_0.article_id=? order by c1_0.created_at desc
+2026-05-29T19:51:23.999+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-3] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=27, sessionId=b9021d68-5e26-4ba8-a612-0b59a0b73d7e, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select a1_0.id,a1_0.user_id,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username,a1_0.username from authors a1_0 join users up1_0 on up1_0.id=a1_0.user_id where a1_0.id=?
+Hibernate: delete from article_tags where article_id=?
+Hibernate: delete from articles where id=?
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.username=?
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.email=?
+Hibernate: insert into user_auth_profiles (email,mfa_enabled,password_hash,status,username) values (?,?,?,?,?)
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.username=?
+2026-05-29T19:52:06.566+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-4] r.a.i.stub.SimpleLoginAttemptService     : login success reset fail count, username=hurl525990x
+Hibernate: select as1_0.id,as1_0.created_at,as1_0.device_id,as1_0.expires_at,as1_0.ip,as1_0.last_accessed_at,as1_0.revoked_at,as1_0.risk_level,as1_0.session_id,as1_0.status,as1_0.user_agent,as1_0.user_id from auth_sessions as1_0 where as1_0.user_id=? and as1_0.device_id=?
+Hibernate: select as1_0.id,as1_0.created_at,as1_0.device_id,as1_0.expires_at,as1_0.ip,as1_0.last_accessed_at,as1_0.revoked_at,as1_0.risk_level,as1_0.session_id,as1_0.status,as1_0.user_agent,as1_0.user_id from auth_sessions as1_0 where as1_0.user_id=? and as1_0.device_id=?
+Hibernate: insert into auth_sessions (created_at,device_id,expires_at,ip,last_accessed_at,revoked_at,risk_level,session_id,status,user_agent,user_id) values (?,?,?,?,?,?,?,?,?,?,?)
+Hibernate: select distinct art1_0.family_id from auth_refresh_tokens art1_0 join auth_sessions as1_0 on art1_0.session_id=as1_0.session_id where as1_0.user_id=? and as1_0.device_id=? and as1_0.status=? and as1_0.revoked_at is null
+Hibernate: insert into auth_refresh_tokens (created_at,expires_at,family_id,parent_id,revoked_at,session_id,token_hash,used_at) values (?,?,?,?,?,?,?,?)
+Hibernate: insert into auth_audit_logs (created_at,device_id,event_type,ip,payload_json,request_id,result,user_agent,user_id) values (?,?,?,?,?,?,?,?,?)
+2026-05-29T19:52:06.595+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-4] r.a.infrastructure.stub.LogAuditService  : audit eventType=successful login, userId=28, requestId=6358ae2a-83bd-4b14-a99e-da3c32ea6ded
+Hibernate: select uap1_0.id,uap1_0.email,uap1_0.mfa_enabled,uap1_0.password_hash,uap1_0.status,uap1_0.username from user_auth_profiles uap1_0 where uap1_0.email=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: insert into users (bio,email,image,user_auth_id,username) values (?,?,?,?,?)
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.email=?
+2026-05-29T19:52:06.711+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-6] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=28, sessionId=780b51d4-27fb-4541-8da7-54d247178168, claims=[sub, sessionId, id, exp, iat, username]
+2026-05-29T19:52:06.713+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-6] r.c.s.e.EntitlementQueryService          : hasAnyBundleAccess userId=28 count=1 allowed=true
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select r1_0.user_id,r1_1.id,r1_1.description,r1_1.name from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=?
+Hibernate: select a1_0.id,a1_0.user_id,a1_0.username from authors a1_0 where a1_0.username=?
+Hibernate: insert into authors (user_id,username) values (?,?)
+Hibernate: select t1_0.id,t1_0.name from tags t1_0 where t1_0.name in (?,?)
+Hibernate: insert into articles (author_id,body,created_at,description,favorites_count,slug,title,updated_at) values (?,?,?,?,?,?,?,?)
+Hibernate: insert into article_tags (article_id,tag_id) values (?,?)
+Hibernate: insert into article_tags (article_id,tag_id) values (?,?)
+2026-05-29T19:52:06.746+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-5] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=28, sessionId=780b51d4-27fb-4541-8da7-54d247178168, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+2026-05-29T19:52:06.751+08:00 ERROR 41688 --- [realworld-backend] [nio-8081-exec-5] r.a.controller.ArticleControllerAdvice   : BizException occurred on /api/articles/article-525990: code=1501, message=Invalid token
+
+realworld_backend.common.exception.BizException: Invalid token
+	at realworld_backend.article.service.ArticleService.updateArticle(ArticleService.java:192) ~[classes/:na]
+	at realworld_backend.article.service.ArticleService.updateArticle(ArticleService.java:176) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380) ~[spring-tx-6.2.18.jar:6.2.18]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.18.jar:6.2.18]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.18.jar:6.2.18]
+	at realworld_backend.article.service.ArticleService$$SpringCGLIB$$0.updateArticle(<generated>) ~[classes/:na]
+	at realworld_backend.article.controller.ArticlesController.updateArticle(ArticlesController.java:95) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.FrameworkServlet.doPut(FrameworkServlet.java:925) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:593) ~[tomcat-embed-core-10.1.54.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.54.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:490) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:351) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:83) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:129) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:125) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:119) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.AuthenticationFilter.doFilterInternal(AuthenticationFilter.java:177) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:158) ~[spring-security-oauth2-resource-server-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:334) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:225) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:319) ~[spring-security-config-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$4(HandlerMappingIntrospector.java:267) ~[spring-webmvc-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:240) ~[spring-security-config-6.5.10.jar:6.5.10]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.18.jar:6.2.18]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:88) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:342) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1797) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:973) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.54.jar:10.1.54]
+	at java.base/java.lang.Thread.run(Thread.java:1516) ~[na:na]
+
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select tl1_0.article_id,tl1_1.id,tl1_1.name from article_tags tl1_0 join tags tl1_1 on tl1_1.id=tl1_0.tag_id where tl1_0.article_id=?
+Hibernate: select a1_0.id,a1_0.user_id,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username,a1_0.username from authors a1_0 join users up1_0 on up1_0.id=a1_0.user_id where a1_0.id=?
+2026-05-29T19:52:06.766+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-8] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=28, sessionId=780b51d4-27fb-4541-8da7-54d247178168, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: insert into comment (article_id,body,created_at,updated_at,user_profile_id) values (?,?,?,?,?)
+2026-05-29T19:52:06.785+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-9] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=28, sessionId=780b51d4-27fb-4541-8da7-54d247178168, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select c1_0.id,c1_0.article_id,c1_0.body,c1_0.created_at,c1_0.updated_at,c1_0.user_profile_id from comment c1_0 where c1_0.article_id=? order by c1_0.created_at desc
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.id=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select f1_0.id,f1_0.follower_id,f1_0.following_id from user_follow f1_0 left join users f2_0 on f2_0.id=f1_0.follower_id where f2_0.id=?
+2026-05-29T19:52:06.800+08:00  INFO 41688 --- [realworld-backend] [io-8081-exec-10] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=28, sessionId=780b51d4-27fb-4541-8da7-54d247178168, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from users up1_0 where up1_0.user_auth_id=?
+Hibernate: select c1_0.id,a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at,c1_0.body,c1_0.created_at,c1_0.updated_at,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username from comment c1_0 left join articles a1_0 on a1_0.id=c1_0.article_id left join users up1_0 on up1_0.id=c1_0.user_profile_id where c1_0.id=?
+Hibernate: delete from comment where id=?
+2026-05-29T19:52:06.818+08:00  INFO 41688 --- [realworld-backend] [nio-8081-exec-1] r.c.w.r.CurrentUserArgumentResolver      : Resolved CurrentAuthUser from JWT: userId=28, sessionId=780b51d4-27fb-4541-8da7-54d247178168, claims=[sub, sessionId, id, exp, iat, username]
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?
+Hibernate: select a1_0.id,a1_0.user_id,up1_0.id,up1_0.bio,up1_0.email,up1_0.image,up1_0.user_auth_id,up1_0.username,a1_0.username from authors a1_0 join users up1_0 on up1_0.id=a1_0.user_id where a1_0.id=?
+Hibernate: delete from article_tags where article_id=?
+Hibernate: delete from articles where id=?
+Hibernate: select a1_0.id,a1_0.author_id,a1_0.body,a1_0.created_at,a1_0.description,a1_0.favorites_count,a1_0.slug,a1_0.title,a1_0.updated_at from articles a1_0 where a1_0.slug=?

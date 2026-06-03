@@ -1,4 +1,4 @@
-﻿# Register user A
+# Register user A
 POST {{host}}/api/users
 {
   "user": {
@@ -9,7 +9,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token_a: jsonpath "$.data.user.token"
+token_a: jsonpath "$.data.user.bearer"
 
 # Register user B
 POST {{host}}/api/users
@@ -22,7 +22,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token_b: jsonpath "$.data.user.token"
+token_b: jsonpath "$.data.user.bearer"
 
 # User A creates article
 POST {{host}}/api/articles

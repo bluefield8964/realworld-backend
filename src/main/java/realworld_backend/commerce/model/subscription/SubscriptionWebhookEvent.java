@@ -13,6 +13,7 @@ import realworld_backend.commerce.service.core.ProviderTimeMapper;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -118,7 +119,7 @@ public class SubscriptionWebhookEvent implements ProviderEventInterface {
 
         public Instant currentPeriodStartInstant() {
             if (currentPeriodStartAt == null) {
-                currentPeriodStartAt = ProviderTimeMapper.toInstant(currentPeriodStart);
+                currentPeriodStartAt = ProviderTimeMapper.toInstant(resolveCurrentPeriodStartEpoch());
             }
             return currentPeriodStartAt;
         }
@@ -129,7 +130,7 @@ public class SubscriptionWebhookEvent implements ProviderEventInterface {
 
         public Instant currentPeriodEndInstant() {
             if (currentPeriodEndAt == null) {
-                currentPeriodEndAt = ProviderTimeMapper.toInstant(currentPeriodEnd);
+                currentPeriodEndAt = ProviderTimeMapper.toInstant(resolveCurrentPeriodEndEpoch());
             }
             return currentPeriodEndAt;
         }
@@ -170,6 +171,34 @@ public class SubscriptionWebhookEvent implements ProviderEventInterface {
         public LocalDateTime createdAtUtc() {
             return ProviderTimeMapper.toUtcLocalDateTime(createdAtInstant());
         }
+
+        private Long resolveCurrentPeriodStartEpoch() {
+            if (currentPeriodStart != null) {
+                return currentPeriodStart;
+            }
+            if (items == null || items.getData() == null || items.getData().isEmpty()) {
+                return null;
+            }
+            return items.getData().stream()
+                    .map(SubscriptionItem::getCurrentPeriodStart)
+                    .filter(value -> value != null)
+                    .min(Comparator.naturalOrder())
+                    .orElse(null);
+        }
+
+        private Long resolveCurrentPeriodEndEpoch() {
+            if (currentPeriodEnd != null) {
+                return currentPeriodEnd;
+            }
+            if (items == null || items.getData() == null || items.getData().isEmpty()) {
+                return null;
+            }
+            return items.getData().stream()
+                    .map(SubscriptionItem::getCurrentPeriodEnd)
+                    .filter(value -> value != null)
+                    .max(Comparator.naturalOrder())
+                    .orElse(null);
+        }
     }
 
     @Data
@@ -182,6 +211,14 @@ public class SubscriptionWebhookEvent implements ProviderEventInterface {
     public static class SubscriptionItem {
         @JsonProperty("id")
         private String id;
+
+        @JsonProperty("current_period_start")
+        @SerializedName("current_period_start")
+        private Long currentPeriodStart;
+
+        @JsonProperty("current_period_end")
+        @SerializedName("current_period_end")
+        private Long currentPeriodEnd;
 
         @JsonProperty("quantity")
         private Long quantity;
@@ -297,8 +334,8 @@ public class SubscriptionWebhookEvent implements ProviderEventInterface {
             return;
         }
 
-        object.currentPeriodStartAt = ProviderTimeMapper.toInstant(object.currentPeriodStart);
-        object.currentPeriodEndAt = ProviderTimeMapper.toInstant(object.currentPeriodEnd);
+        object.currentPeriodStartAt = object.currentPeriodStartInstant();
+        object.currentPeriodEndAt = object.currentPeriodEndInstant();
         object.trialStartAt = ProviderTimeMapper.toInstant(object.trialStart);
         object.trialEndAt = ProviderTimeMapper.toInstant(object.trialEnd);
         object.createdAt = ProviderTimeMapper.toInstant(object.created);

@@ -1,5 +1,7 @@
 package realworld_backend.auth.infrastructure.stub;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +25,9 @@ public class AuthRefreshTokenServiceImpl implements AuthRefreshTokenService {
     private final AuthRefreshTokenRepository authRefreshTokenRepository;
 
     @Override
+    @Transactional
     public String generateRefreshToken(Long userId, String deviceId, String sessionId) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         //find all the family refreshToken
         List<String> activeFamilyIdsByDevice =
                 authRefreshTokenRepository.findActiveFamilyIdsByDevice(userId, deviceId, SessionStatus.ACTIVE);
@@ -49,7 +52,7 @@ public class AuthRefreshTokenServiceImpl implements AuthRefreshTokenService {
 
     @Override
     public void revokeBySessionId(String sessionId) {
-        authRefreshTokenRepository.revokeBySessionId(sessionId, LocalDateTime.now());
+        authRefreshTokenRepository.revokeBySessionId(sessionId, UtcTimeMapper.nowUtc());
     }
 
     @Override
@@ -57,7 +60,7 @@ public class AuthRefreshTokenServiceImpl implements AuthRefreshTokenService {
         //find By TokenHash And After ExpiresAt
         String tokenHash = sha256(refreshToken);
         Optional<AuthRefreshToken> authRefreshTokenOptional =
-                authRefreshTokenRepository.findByTokenHashAndExpiresAtAfter(tokenHash, LocalDateTime.now());
+                authRefreshTokenRepository.findByTokenHashAndExpiresAtAfter(tokenHash, UtcTimeMapper.nowUtc());
 
 
         if (authRefreshTokenOptional.isPresent()) {
@@ -65,7 +68,7 @@ public class AuthRefreshTokenServiceImpl implements AuthRefreshTokenService {
 
             if (authRefreshToken.getUsedAt() != null || authRefreshToken.getRevokedAt() != null) {
                 //the refreshToken is reused,need revoked the whole family
-                authRefreshTokenRepository.revokeByFamilyIds(Collections.singletonList(authRefreshToken.getFamilyId()), LocalDateTime.now());
+                authRefreshTokenRepository.revokeByFamilyIds(Collections.singletonList(authRefreshToken.getFamilyId()), UtcTimeMapper.nowUtc());
                 throw new UserAuthException(ErrorCode.REFRESH_TOKEN_REUSED);
             }
             return authRefreshToken;
@@ -77,7 +80,7 @@ public class AuthRefreshTokenServiceImpl implements AuthRefreshTokenService {
     @Override
     public String rotationRefreshToken(AuthRefreshToken authRefreshToken) {
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         //prevent concurrent operation
         int updated = authRefreshTokenRepository.consumeIfActive(authRefreshToken.getId(), now);
         if (updated == 0) {
@@ -125,3 +128,4 @@ public class AuthRefreshTokenServiceImpl implements AuthRefreshTokenService {
     }
 
 }
+

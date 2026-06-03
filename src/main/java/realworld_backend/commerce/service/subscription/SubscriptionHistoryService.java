@@ -1,5 +1,7 @@
 package realworld_backend.commerce.service.subscription;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +36,7 @@ public class SubscriptionHistoryService {
     public void recordInit(CustomerSubscription subscription) {
 
         SubscriptionHistory generated = SubscriptionHistory.builder().subscription(subscription)
-                .createdAt(LocalDateTime.now())
+                .createdAt(UtcTimeMapper.nowUtc())
                 .action(SubscriptionStatus.CREATED)
                 .toStatus(SubscriptionStatus.CREATED)
                 .paymentStatus(PaymentStatus.INIT)
@@ -45,7 +47,7 @@ public class SubscriptionHistoryService {
 
     public void recordFail(CustomerSubscription subscription, Exception e) {
         SubscriptionHistory fail = SubscriptionHistory.builder().subscription(subscription)
-                .createdAt(LocalDateTime.now())
+                .createdAt(UtcTimeMapper.nowUtc())
                 .action(SubscriptionStatus.INITIAL_FAIL)
                 .paymentStatus(PaymentStatus.FAILED)
                 .fromStatus(SubscriptionStatus.CREATED)
@@ -58,7 +60,7 @@ public class SubscriptionHistoryService {
 
     public void recordPending(CustomerSubscription subscription) {
         SubscriptionHistory success = SubscriptionHistory.builder().subscription(subscription)
-                .createdAt(LocalDateTime.now())
+                .createdAt(UtcTimeMapper.nowUtc())
                 .action(SubscriptionStatus.PENDING)
                 .fromStatus(SubscriptionStatus.CREATED)
                 .toStatus(SubscriptionStatus.PENDING)
@@ -73,12 +75,21 @@ public class SubscriptionHistoryService {
 
     }
 
-    public AppendResult appendInitialFailEventIfLatestPaying(String subscriptionNo) {
+    public AppendResult appendCheckoutFailEventIfLatestPaying(String subscriptionNo) {
         return appendTransitionIfLatestPaymentStatus(
                 subscriptionNo,
-                SubscriptionStatus.INITIAL_FAIL,
-                EnumSet.of(PaymentStatus.PROCESSING),
-                "subscription_checkout_initial_fail"
+                SubscriptionStatus.CHECKOUT_FAIL,
+                EnumSet.of(PaymentStatus.PROCESSING, PaymentStatus.PAYING),
+                "subscription_checkout_fail"
+        );
+    }
+
+    public AppendResult appendCheckoutExpiredEventIfLatestPaying(String subscriptionNo) {
+        return appendTransitionIfLatestPaymentStatus(
+                subscriptionNo,
+                SubscriptionStatus.CHECKOUT_EXPIRED,
+                EnumSet.of(PaymentStatus.PROCESSING, PaymentStatus.PAYING),
+                "subscription_checkout_expired"
         );
     }
 
@@ -86,7 +97,7 @@ public class SubscriptionHistoryService {
         return appendTransitionIfLatestPaymentStatus(
                 subscriptionNo,
                 SubscriptionStatus.CANCELED,
-                EnumSet.of(PaymentStatus.PROCESSING, PaymentStatus.SUCCESS),
+                EnumSet.of(PaymentStatus.PROCESSING, PaymentStatus.PAYING, PaymentStatus.SUCCESS),
                 "subscription_canceled"
         );
     }
@@ -95,17 +106,17 @@ public class SubscriptionHistoryService {
         return appendTransitionIfLatestPaymentStatus(
                 subscriptionNo,
                 SubscriptionStatus.ACTIVE,
-                EnumSet.of(PaymentStatus.PROCESSING, PaymentStatus.SUCCESS),
+                EnumSet.of(PaymentStatus.PROCESSING, PaymentStatus.PAYING, PaymentStatus.SUCCESS),
                 "subscription_activated"
         );
     }
 
-    public AppendResult appendPendingEventIfLatestInit(String subscriptionNo) {
+    public AppendResult appendPayingEventIfLatestPending(String subscriptionNo) {
         return appendTransitionIfLatestPaymentStatus(
                 subscriptionNo,
-                SubscriptionStatus.PENDING,
-                EnumSet.of(PaymentStatus.INIT),
-                "subscription_pending"
+                SubscriptionStatus.PAYING,
+                EnumSet.of(PaymentStatus.PROCESSING),
+                "subscription_paying"
         );
     }
 
@@ -129,7 +140,7 @@ public class SubscriptionHistoryService {
         }
 
         SubscriptionStatus fromStatus = latest.getToStatus() != null ? latest.getToStatus() : latest.getAction();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         SubscriptionHistory next = SubscriptionHistory.builder()
                 .subscription(latest.getSubscription())
                 .action(toStatus)
@@ -148,12 +159,19 @@ public class SubscriptionHistoryService {
         if (toStatus == SubscriptionStatus.ACTIVE || toStatus == SubscriptionStatus.CANCELED) {
             return PaymentStatus.SUCCESS;
         }
-        if (toStatus == SubscriptionStatus.INITIAL_FAIL) {
+        if (toStatus == SubscriptionStatus.INITIAL_FAIL || toStatus == SubscriptionStatus.CHECKOUT_FAIL) {
             return PaymentStatus.FAILED;
+        }
+        if (toStatus == SubscriptionStatus.CHECKOUT_EXPIRED) {
+            return fallback;
         }
         if (toStatus == SubscriptionStatus.PENDING) {
             return PaymentStatus.PROCESSING;
         }
+        if (toStatus == SubscriptionStatus.PAYING) {
+            return PaymentStatus.PAYING;
+        }
         return fallback;
     }
 }
+

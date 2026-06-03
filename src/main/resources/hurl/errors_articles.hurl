@@ -72,7 +72,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token: jsonpath "$.data.user.token"
+token: jsonpath "$.data.user.bearer"
 
 # Create article empty title (currently accepted by backend)
 POST {{host}}/api/articles

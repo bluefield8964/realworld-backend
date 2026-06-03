@@ -9,6 +9,7 @@ import realworld_backend.auth.domain.model.LoginContext;
 import realworld_backend.auth.domain.service.RiskDecision;
 import realworld_backend.auth.domain.service.RiskService;
 import realworld_backend.auth.domain.service.SessionService;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -37,15 +38,15 @@ public class NoopRiskService implements RiskService {
         }
 
         //use the last time ip compare to this times
-        if (authSession.getIp().equals(loginContext.getIp())) {
+        if (Objects.equals(authSession.getIp(), loginContext.getIp())) {
             //extra point
             score += 30;
         }
-        if (authSession.getDeviceId().equals(loginContext.getDeviceId())) {
+        if (Objects.equals(authSession.getDeviceId(), loginContext.getDeviceId())) {
             //extra point
             score += 30;
         }
-        if (authSession.getUserAgent().equals(loginContext.getUserAgent())) {
+        if (Objects.equals(authSession.getUserAgent(), loginContext.getUserAgent())) {
             //extra point
             score += 30;
         }

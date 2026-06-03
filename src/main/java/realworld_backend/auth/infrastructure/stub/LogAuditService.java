@@ -1,5 +1,7 @@
 package realworld_backend.auth.infrastructure.stub;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,7 @@ public class LogAuditService implements AuditService {
         auditLogRepository.save(new AuthAuditLog
                 (userId, "logout", "success", ip, deviceId,
                         requestId, userAgent, "{\"sessionId\":\"" + sessionId + "\"}",
-                        LocalDateTime.now()));
+                        UtcTimeMapper.nowUtc()));
         log.info("audit eventType=logout, userId={}, requestId={}", userId, requestId);
     }
 
@@ -37,9 +39,10 @@ public class LogAuditService implements AuditService {
         auditLogRepository.save(new AuthAuditLog
                 (userId, eventType, result, ip, deviceId,
                         requestId, userAgent, "{\"sessionId\":\"" + sessionId + "\"}",
-                        LocalDateTime.now()));
+                        UtcTimeMapper.nowUtc()));
         log.info("audit eventType={}, userId={}, requestId={}", eventType, userId, requestId);
     }
 
 
 }
+

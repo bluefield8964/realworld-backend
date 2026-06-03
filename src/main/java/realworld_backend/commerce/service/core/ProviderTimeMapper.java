@@ -1,8 +1,9 @@
 package realworld_backend.commerce.service.core;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * Normalizes provider timestamps into internal time types.
@@ -11,7 +12,6 @@ import java.time.ZoneOffset;
 public final class ProviderTimeMapper {
 
     private static final long MILLIS_THRESHOLD = 9_999_999_999L;
-    private static final ZoneOffset UTC = ZoneOffset.UTC;
 
     private ProviderTimeMapper() {
     }
@@ -32,16 +32,14 @@ public final class ProviderTimeMapper {
     }
 
     public static LocalDateTime toUtcLocalDateTime(Instant instant) {
-        if (instant == null) {
-            return null;
-        }
-        return LocalDateTime.ofInstant(instant, UTC);
+        return UtcTimeMapper.toUtcLocalDateTime(instant);
     }
 
     public static Instant toInstant(LocalDateTime localDateTimeUtc) {
-        if (localDateTimeUtc == null) {
-            return null;
-        }
-        return localDateTimeUtc.toInstant(UTC);
+        return UtcTimeMapper.toInstant(localDateTimeUtc);
+    }
+
+    public static LocalDateTime nowUtc() {
+        return UtcTimeMapper.nowUtc();
     }
 }

@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import realworld_backend.commerce.model.EventStatus;
 import realworld_backend.commerce.service.core.PaymentChannelException;
-import realworld_backend.commerce.service.core.WebhookDecision;
+import realworld_backend.commerce.service.webhook.DefaultWebhookErrorPolicy;
+import realworld_backend.commerce.service.webhook.core.WebhookDecision;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
 
@@ -61,4 +62,3 @@ class DefaultWebhookErrorPolicyTest {
         assertTrue(decision.needUpsertAbnormal());
     }
 }
-

@@ -166,6 +166,86 @@ public final class WebhookTestPayloadFactory {
         );
     }
 
+    public static ProviderRawEvent subscriptionUpdatedRawEvent(
+            String eventId,
+            String providerSubscriptionId,
+            String subscriptionNo,
+            String providerStatus
+    ) {
+        String rawObjectJson = """
+                {
+                  "id": "%s",
+                  "object": "subscription",
+                  "status": "%s",
+                  "customer": "cus_123",
+                  "current_period_start": 1779248316,
+                  "current_period_end": 1781840316,
+                  "cancel_at_period_end": false,
+                  "metadata": {
+                    "subscriptionNo": "%s",
+                    "userId": "1",
+                    "product": "Pro Plan"
+                  }
+                }
+                """.formatted(providerSubscriptionId, providerStatus, subscriptionNo);
+
+        return buildRawEvent(
+                eventId,
+                BusinessEventType.SUBSCRIPTION_UPDATED,
+                "customer.subscription.updated",
+                rawObjectJson
+        );
+    }
+
+    public static ProviderRawEvent subscriptionUpdatedRawEventWithItemPeriods(
+            String eventId,
+            String providerSubscriptionId,
+            String subscriptionNo,
+            String providerStatus,
+            long itemPeriodStart,
+            long itemPeriodEnd
+    ) {
+        String rawObjectJson = """
+                {
+                  "id": "%s",
+                  "object": "subscription",
+                  "status": "%s",
+                  "customer": "cus_123",
+                  "cancel_at_period_end": false,
+                  "items": {
+                    "data": [
+                      {
+                        "id": "si_123",
+                        "current_period_start": %d,
+                        "current_period_end": %d,
+                        "quantity": 1,
+                        "price": {
+                          "id": "price_123",
+                          "product": "prod_123",
+                          "unit_amount": 3000,
+                          "recurring": {
+                            "interval": "month"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "metadata": {
+                    "subscriptionNo": "%s",
+                    "userId": "1",
+                    "product": "Pro Plan"
+                  }
+                }
+                """.formatted(providerSubscriptionId, providerStatus, itemPeriodStart, itemPeriodEnd, subscriptionNo);
+
+        return buildRawEvent(
+                eventId,
+                BusinessEventType.SUBSCRIPTION_UPDATED,
+                "customer.subscription.updated",
+                rawObjectJson
+        );
+    }
+
     public static ProviderRawEvent invoicePaymentFailedRawEvent(
             String eventId,
             String invoiceId,
@@ -221,6 +301,35 @@ public final class WebhookTestPayloadFactory {
                 eventId,
                 BusinessEventType.INVOICE_PAYMENT_SUCCEEDED,
                 "invoice.payment_succeeded",
+                rawObjectJson
+        );
+    }
+
+    public static ProviderRawEvent invoicePaymentActionRequiredRawEvent(
+            String eventId,
+            String invoiceId,
+            String subscriptionNo
+    ) {
+        String rawObjectJson = """
+                {
+                  "id": "%s",
+                  "object": "invoice",
+                  "status": "open",
+                  "paid": false,
+                  "customer": "cus_123",
+                  "subscription": "sub_123",
+                  "subscription_details": {
+                    "metadata": {
+                      "subscriptionNo": "%s"
+                    }
+                  }
+                }
+                """.formatted(invoiceId, subscriptionNo);
+
+        return buildRawEvent(
+                eventId,
+                BusinessEventType.INVOICE_PAYMENT_ACTION_REQUIRED,
+                "invoice.payment_action_required",
                 rawObjectJson
         );
     }

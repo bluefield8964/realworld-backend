@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 @Service
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
-    public void upsertInvoiceByEvent(InvoiceWebhookEvent event, String subscriptionNo, PaymentStatus accountingStatus) {
+
+    public boolean upsertInvoiceByEvent(InvoiceWebhookEvent event, String subscriptionNo, PaymentStatus accountingStatus) {
         InvoiceWebhookEvent.InvoiceObject invoiceObject = event.getObject();
         Invoice record = invoiceRepository.findByInvoiceId(invoiceObject.getId())
                 .orElseGet(Invoice::new);
@@ -55,7 +56,11 @@ public class InvoiceService {
             record.setCreatedAt(now);
         }
         record.setUpdatedAt(now);
-        invoiceRepository.save(record);
+        Invoice save = invoiceRepository.save(record);
+        if (save == null) {
+            return false;
+        }
+        return true;
     }
 
     public void upsertInvoiceByRetrieve(String provider, ProviderInvoice providerInvoice, String subscriptionNo) {

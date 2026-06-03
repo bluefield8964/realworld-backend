@@ -15,14 +15,23 @@ import realworld_backend.commerce.model.core.ProviderRawEvent;
 import realworld_backend.commerce.model.invoice.InvoiceWebhookEvent;
 import realworld_backend.commerce.model.log.AbnormalOrderType;
 import realworld_backend.commerce.model.subscription.CustomerSubscription;
-import realworld_backend.commerce.service.core.WebhookContext;
-import realworld_backend.commerce.service.impl.parser.WebhookObjectParserRouter;
+import realworld_backend.commerce.model.subscription.enums.SubscriptionStatus;
+import realworld_backend.commerce.service.entitlement.EntitlementProjector;
+import realworld_backend.commerce.service.webhook.PaymentFailureEscalationService;
+import realworld_backend.commerce.service.webhook.core.WebhookContext;
+import realworld_backend.commerce.service.webhook.parser.WebhookObjectParserRouter;
+import realworld_backend.commerce.service.statemachine.SubscriptionWebhookStateMachine;
 import realworld_backend.commerce.service.subscription.CustomerSubscriptionService;
+import realworld_backend.commerce.service.subscription.invoice.SubscriptionInvoiceWebhookService;
+import realworld_backend.commerce.service.subscription.lifecycle.SubscriptionLifecycleWebhookService;
+import realworld_backend.commerce.service.subscription.snapshot.SubscriptionSnapshotMergeService;
 import realworld_backend.commerce.service.subscription.SubscriptionHistoryService;
+import realworld_backend.commerce.service.subscription.lifecycle.SubscriptionSnapshotSyncService;
 import realworld_backend.commerce.service.subscription.SubscriptionWebhookService;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,11 +39,14 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,20 +70,59 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
     @Mock
     private InvoiceService invoiceService;
     @Mock
+    private PaymentFailureEscalationService paymentFailureEscalationService;
+    @Mock
+    private EntitlementProjector entitlementProjector;
+    private SubscriptionSnapshotMergeService subscriptionSnapshotMergeService;
+    @Mock
     private RLock lock;
 
     private SubscriptionWebhookService subscriptionWebhookService;
+    private SubscriptionWebhookStateMachine subscriptionWebhookStateMachine;
+    private SubscriptionLifecycleWebhookService subscriptionLifecycleWebhookService;
+    private SubscriptionInvoiceWebhookService subscriptionInvoiceWebhookService;
+    private SubscriptionSnapshotSyncService subscriptionSnapshotSyncService;
 
     @BeforeEach
     void setUp() {
-        subscriptionWebhookService = new SubscriptionWebhookService(
+        subscriptionWebhookStateMachine = new SubscriptionWebhookStateMachine();
+        subscriptionSnapshotMergeService = new SubscriptionSnapshotMergeService();
+        subscriptionLifecycleWebhookService = new SubscriptionLifecycleWebhookService(
                 webhookObjectParserRouter,
                 redissonClient,
                 subscriptionHistoryService,
                 abnormalOrchestrator,
                 redisTemplate,
                 customerSubscriptionService,
-                invoiceService
+                paymentFailureEscalationService,
+                subscriptionWebhookStateMachine,
+                subscriptionSnapshotMergeService,
+                entitlementProjector
+        );
+        subscriptionInvoiceWebhookService = new SubscriptionInvoiceWebhookService(
+                webhookObjectParserRouter,
+                redissonClient,
+                abnormalOrchestrator,
+                redisTemplate,
+                customerSubscriptionService,
+                invoiceService,
+                paymentFailureEscalationService,
+                subscriptionWebhookStateMachine,
+                subscriptionSnapshotMergeService,
+                entitlementProjector
+        );
+        subscriptionSnapshotSyncService = new SubscriptionSnapshotSyncService(
+                webhookObjectParserRouter,
+                redissonClient,
+                redisTemplate,
+                customerSubscriptionService,
+                abnormalOrchestrator,
+                subscriptionSnapshotMergeService
+        );
+        subscriptionWebhookService = new SubscriptionWebhookService(
+                subscriptionLifecycleWebhookService,
+                subscriptionInvoiceWebhookService,
+                subscriptionSnapshotSyncService
         );
 
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -160,7 +211,7 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
     }
 
     @Test
-    void invoicePaymentFailedShouldOnlyMoveSubscriptionToPastDue() throws Exception {
+    void invoicePaymentFailedShouldStoreBillingFactAndRefreshEntitlement() throws Exception {
         ProviderRawEvent rowEvent = ProviderRawEvent.builder()
                 .provider("STRIPE")
                 .eventId("evt_invoice_fail_4")
@@ -185,19 +236,23 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
                 .parseAs(any(), any(), eq(InvoiceWebhookEvent.class));
         when(valueOperations.get(anyString())).thenReturn(null);
         when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
+        when(invoiceService.upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.FAILED)).thenReturn(true);
         when(customerSubscriptionService.findBySubscriptionNo("sub_no_123"))
-                .thenReturn(Optional.of(CustomerSubscription.builder().subscriptionNo("sub_no_123").build()));
-
+                .thenReturn(Optional.of(CustomerSubscription.builder()
+                        .subscriptionNo("sub_no_123")
+                        .status(SubscriptionStatus.ACTIVE)
+                        .build()));
         assertDoesNotThrow(() -> subscriptionWebhookService.handleInvoicePaymentFailed(ctx));
 
         verify(invoiceService).upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.FAILED);
-        verify(customerSubscriptionService).updateStatusToPastDue(eq("sub_no_123"), any());
+        verify(customerSubscriptionService, times(3)).findBySubscriptionNo("sub_no_123");
+        verify(entitlementProjector).refreshSubscriptionEntitlement(any(CustomerSubscription.class), any());
         assertEquals("sub_no_123", ctx.getTrackingId());
         assertEquals("in_123", ctx.getProviderTrackingId());
     }
 
     @Test
-    void invoicePaymentSucceededShouldOnlyRecoverSubscriptionFromRecoverableStates() throws Exception {
+    void invoicePaymentSucceededShouldStoreBillingFactAndRefreshEntitlement() throws Exception {
         ProviderRawEvent rowEvent = ProviderRawEvent.builder()
                 .provider("STRIPE")
                 .eventId("evt_invoice_paid_1")
@@ -222,13 +277,157 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
                 .parseAs(any(), any(), eq(InvoiceWebhookEvent.class));
         when(valueOperations.get(anyString())).thenReturn(null);
         when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
-
+        when(invoiceService.upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.SUCCESS)).thenReturn(true);
+        when(customerSubscriptionService.findBySubscriptionNo("sub_no_123"))
+                .thenReturn(Optional.of(CustomerSubscription.builder()
+                        .subscriptionNo("sub_no_123")
+                        .status(SubscriptionStatus.PAST_DUE)
+                        .build()));
         assertDoesNotThrow(() -> subscriptionWebhookService.handleInvoicePaymentSucceeded(ctx));
 
         verify(invoiceService).upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.SUCCESS);
-        verify(customerSubscriptionService).updateStatusToActiveFromRecoverable(eq("sub_no_123"), any());
+        verify(customerSubscriptionService, times(3)).findBySubscriptionNo("sub_no_123");
+        verify(entitlementProjector).refreshSubscriptionEntitlement(any(CustomerSubscription.class), any());
         assertEquals("sub_no_123", ctx.getTrackingId());
         assertEquals("in_123", ctx.getProviderTrackingId());
+    }
+
+    @Test
+    void invoicePaymentSucceededShouldRaiseInsertFailedWhenInvoiceUpsertFails() throws Exception {
+        ProviderRawEvent rowEvent = ProviderRawEvent.builder()
+                .provider("STRIPE")
+                .eventId("evt_invoice_paid_insert_fail")
+                .type(BusinessEventType.INVOICE_PAYMENT_SUCCEEDED)
+                .rawType("invoice.payment_succeeded")
+                .rawObjectJson("{}")
+                .created(1715000000L)
+                .livemode(false)
+                .build();
+
+        WebhookContext ctx = WebhookContext.builder()
+                .provider("STRIPE")
+                .eventId("evt_invoice_paid_insert_fail")
+                .eventType(BusinessEventType.INVOICE_PAYMENT_SUCCEEDED)
+                .providerRawEvent(rowEvent)
+                .attempts(0)
+                .build();
+
+        InvoiceWebhookEvent event = buildInvoicePaymentSucceededEventWithMetadata();
+        doReturn(event)
+                .when(webhookObjectParserRouter)
+                .parseAs(any(), any(), eq(InvoiceWebhookEvent.class));
+        when(valueOperations.get(anyString())).thenReturn(null);
+        when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
+        when(invoiceService.upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.SUCCESS)).thenReturn(false);
+
+        BizException exception = assertThrows(
+                BizException.class,
+                () -> subscriptionWebhookService.handleInvoicePaymentSucceeded(ctx)
+        );
+
+        assertEquals(ErrorCode.INVOICE_INSERT_FAILED, exception.getErrorCode());
+        verify(paymentFailureEscalationService).recordIncidentForException(
+                eq(ctx),
+                eq(null),
+                eq(null),
+                eq("upsert invoice failed"),
+                eq(null),
+                eq(null)
+        );
+    }
+
+    @Test
+    void invoicePaymentFailedShouldNotRetrySubscriptionStateTransition() throws Exception {
+        ProviderRawEvent rowEvent = ProviderRawEvent.builder()
+                .provider("STRIPE")
+                .eventId("evt_invoice_fail_recheck")
+                .type(BusinessEventType.INVOICE_PAYMENT_FAILED)
+                .rawType("invoice.payment_failed")
+                .rawObjectJson("{}")
+                .created(1715000000L)
+                .livemode(false)
+                .build();
+
+        WebhookContext ctx = WebhookContext.builder()
+                .provider("STRIPE")
+                .eventId("evt_invoice_fail_recheck")
+                .eventType(BusinessEventType.INVOICE_PAYMENT_FAILED)
+                .providerRawEvent(rowEvent)
+                .attempts(0)
+                .build();
+
+        InvoiceWebhookEvent event = buildInvoicePaymentFailedEventWithMetadata();
+        doReturn(event)
+                .when(webhookObjectParserRouter)
+                .parseAs(any(), any(), eq(InvoiceWebhookEvent.class));
+        when(valueOperations.get(anyString())).thenReturn(null);
+        when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
+        when(invoiceService.upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.FAILED)).thenReturn(true);
+        when(customerSubscriptionService.findBySubscriptionNo("sub_no_123"))
+                .thenReturn(Optional.of(CustomerSubscription.builder()
+                        .subscriptionNo("sub_no_123")
+                        .status(SubscriptionStatus.ACTIVE)
+                        .build()));
+
+        assertDoesNotThrow(() -> subscriptionWebhookService.handleInvoicePaymentFailed(ctx));
+
+        verify(customerSubscriptionService, never()).updateFromProviderIfStatusChanged(
+                anyString(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                anyBoolean(),
+                any()
+        );
+    }
+
+    @Test
+    void invoicePaymentSucceededShouldNotRetrySubscriptionStateTransition() throws Exception {
+        ProviderRawEvent rowEvent = ProviderRawEvent.builder()
+                .provider("STRIPE")
+                .eventId("evt_invoice_paid_recheck")
+                .type(BusinessEventType.INVOICE_PAYMENT_SUCCEEDED)
+                .rawType("invoice.payment_succeeded")
+                .rawObjectJson("{}")
+                .created(1715000000L)
+                .livemode(false)
+                .build();
+
+        WebhookContext ctx = WebhookContext.builder()
+                .provider("STRIPE")
+                .eventId("evt_invoice_paid_recheck")
+                .eventType(BusinessEventType.INVOICE_PAYMENT_SUCCEEDED)
+                .providerRawEvent(rowEvent)
+                .attempts(0)
+                .build();
+
+        InvoiceWebhookEvent event = buildInvoicePaymentSucceededEventWithMetadata();
+        doReturn(event)
+                .when(webhookObjectParserRouter)
+                .parseAs(any(), any(), eq(InvoiceWebhookEvent.class));
+        when(valueOperations.get(anyString())).thenReturn(null);
+        when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
+        when(invoiceService.upsertInvoiceByEvent(event, "sub_no_123", PaymentStatus.SUCCESS)).thenReturn(true);
+        when(customerSubscriptionService.findBySubscriptionNo("sub_no_123"))
+                .thenReturn(Optional.of(CustomerSubscription.builder()
+                        .subscriptionNo("sub_no_123")
+                        .status(SubscriptionStatus.PAST_DUE)
+                        .build()));
+
+        assertDoesNotThrow(() -> subscriptionWebhookService.handleInvoicePaymentSucceeded(ctx));
+
+        verify(customerSubscriptionService, never()).updateFromProviderIfStatusChanged(
+                anyString(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                anyBoolean(),
+                any()
+        );
     }
 
     private ProviderRawEvent buildInvoicePaymentFailedRowEventWithoutMetadata() {
@@ -274,6 +473,8 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
         invoiceObject.setPaid(false);
         invoiceObject.setSubscription("sub_123");
         invoiceObject.setCustomer("cus_123");
+        invoiceObject.setPeriodStart(Instant.parse("2026-05-01T00:00:00Z").getEpochSecond());
+        invoiceObject.setPeriodEnd(Instant.parse("2026-06-01T00:00:00Z").getEpochSecond());
         invoiceObject.setMetadata(Map.of("subscriptionNo", "sub_no_123"));
         invoiceObject.setLastPaymentError(paymentError);
 
@@ -293,6 +494,8 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
         invoiceObject.setPaid(true);
         invoiceObject.setSubscription("sub_123");
         invoiceObject.setCustomer("cus_123");
+        invoiceObject.setPeriodStart(Instant.parse("2026-05-01T00:00:00Z").getEpochSecond());
+        invoiceObject.setPeriodEnd(Instant.parse("2026-06-01T00:00:00Z").getEpochSecond());
         invoiceObject.setMetadata(Map.of("subscriptionNo", "sub_no_123"));
 
         return InvoiceWebhookEvent.builder()
@@ -304,4 +507,3 @@ class SubscriptionWebhookServiceInvoiceRetryTest {
                 .build();
     }
 }
-

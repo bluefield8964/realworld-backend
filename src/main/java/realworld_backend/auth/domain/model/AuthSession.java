@@ -1,5 +1,7 @@
 package realworld_backend.auth.domain.model;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,24 +40,25 @@ public class AuthSession {
     private LocalDateTime revokedAt;
 
     public void touch() {
-        this.lastAccessedAt = LocalDateTime.now();
+        this.lastAccessedAt = UtcTimeMapper.nowUtc();
         this.expiresAt = this.lastAccessedAt.plusDays(7);
     }
 
     public void revoke() {
         this.status = SessionStatus.REVOKED;
-        this.revokedAt = LocalDateTime.now();
+        this.revokedAt = UtcTimeMapper.nowUtc();
     }
 
     public boolean isActive() {
         return this.status == SessionStatus.ACTIVE
                 && this.revokedAt == null
                 && this.expiresAt != null
-                && this.expiresAt.isAfter(LocalDateTime.now());
+                && this.expiresAt.isAfter(UtcTimeMapper.nowUtc());
     }
     public void used() {
         this.status = SessionStatus.USED;
-        this.revokedAt = LocalDateTime.now();
+        this.revokedAt = UtcTimeMapper.nowUtc();
     }
 
 }
+

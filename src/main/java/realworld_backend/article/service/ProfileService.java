@@ -23,8 +23,13 @@ public class ProfileService {
                 .orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_NOT_FOUND));
         ProfileResponse profileResponse = new ProfileResponse(following);
         if (currentUser != null) {
+            UserProfile currentProfile = userProfileRepository.findByUserAuthId(currentUser.userId()).orElse(null);
+            if (currentProfile == null) {
+                profileResponse.setFollowing(false);
+                return profileResponse;
+            }
             boolean existsByFollowerIdAndFollowingId =
-                    followRepository.existsByFollowerIdAndFollowingId(currentUser.userId(), following.getId());
+                    followRepository.existsByFollowerIdAndFollowingId(currentProfile.getId(), following.getId());
             profileResponse.setFollowing(existsByFollowerIdAndFollowingId);
         } else {
             profileResponse.setFollowing(false);
@@ -35,13 +40,13 @@ public class ProfileService {
     public ProfileResponse follow(String username, CurrentAuthUser currentUser) {
         UserProfile following = userProfileRepository.findByUsername(username)
                 .orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_NOT_FOUND));
-        if (currentUser.userId().equals(following.getId())) {
+        UserProfile follower = userProfileRepository.findByUserAuthId(currentUser.userId())
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        if (follower.getId().equals(following.getId())) {
             throw new BizException(ErrorCode.CANNOT_FOLLOW_SELF);
         }
-        boolean exists = followRepository.existsByFollowerIdAndFollowingId(currentUser.userId(), following.getId());
+        boolean exists = followRepository.existsByFollowerIdAndFollowingId(follower.getId(), following.getId());
         if (!exists) {
-            UserProfile follower = userProfileRepository.findById(currentUser.userId())
-                    .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
             Follow follow = new Follow();
             follow.setFollower(follower);
             follow.setFollowing(following);
@@ -55,11 +60,13 @@ public class ProfileService {
     public ProfileResponse unfollow(String username, CurrentAuthUser currentUser) {
         UserProfile following = userProfileRepository.findByUsername(username)
                 .orElseThrow(() -> new BizException(ErrorCode.FOLLOWING_NOT_FOUND));
-        if (currentUser.userId().equals(following.getId())) {
+        UserProfile follower = userProfileRepository.findByUserAuthId(currentUser.userId())
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        if (follower.getId().equals(following.getId())) {
             throw new BizException(ErrorCode.CANNOT_FOLLOW_SELF);
         }
         // find out  follow relationship
-        followRepository.deleteByFollowerIdAndFollowingId(currentUser.userId(), following.getId());
+        followRepository.deleteByFollowerIdAndFollowingId(follower.getId(), following.getId());
         ProfileResponse profileResponse = new ProfileResponse(following);
         profileResponse.setFollowing(false);
         return profileResponse;

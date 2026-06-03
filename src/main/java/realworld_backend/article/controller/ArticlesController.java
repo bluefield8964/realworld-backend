@@ -13,7 +13,7 @@ import realworld_backend.common.dto.responseBody.MultipleArticlesResponse;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
 import realworld_backend.common.web.resolver.CurrentUser;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.HashMap;
 import java.util.List;

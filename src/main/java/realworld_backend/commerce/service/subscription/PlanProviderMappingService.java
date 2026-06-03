@@ -12,8 +12,8 @@ import realworld_backend.commerce.repository.PlanProviderMappingRepository;
 public class PlanProviderMappingService {
     private final PlanProviderMappingRepository planProviderMappingRepository;
 
-    public  PlanProviderMapping findMappingByPlanAndProvider(SubscriptionPlan plan, ProviderType provider) {
-        return planProviderMappingRepository.findByPlanIdAndProvider(plan.getId(),provider.name());
+    public PlanProviderMapping findMappingByPlanAndProvider(SubscriptionPlan plan, ProviderType provider) {
+        return planProviderMappingRepository.findByPlanIdAndProvider(plan.getId(), provider);
 
     }
 }

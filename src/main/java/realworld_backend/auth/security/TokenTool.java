@@ -1,8 +1,6 @@
 package realworld_backend.auth.security;
 
 
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -11,16 +9,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 import realworld_backend.auth.domain.model.UserAuthProfile;
-import realworld_backend.common.exception.ErrorCode;
-import realworld_backend.common.exception.TokenExpiredException;
-import realworld_backend.common.exception.TokenInvalidException;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
-
-import static realworld_backend.common.exception.ErrorCode.TOKEN_EXPIRED;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +22,7 @@ public class TokenTool {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public String generateAuthToken(UserAuthProfile user,String sessionId) {
+    public String generateAuthToken(UserAuthProfile user, String sessionId) {
         Instant now = Instant.now();
         String oldToken = (String) redisTemplate.opsForValue().get("Bearer_id:" + user.getId());
         if (oldToken != null) {
@@ -40,8 +31,8 @@ public class TokenTool {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.getId().toString())
                 .claim("username", user.getUsername())
-                .claim("sessionId",sessionId)
-                .claim("id",user.getId())
+                .claim("sessionId", sessionId)
+                .claim("id", user.getId())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(3600))
                 .build();
@@ -55,5 +46,5 @@ public class TokenTool {
         redisTemplate.opsForValue().set("Bearer_id:" + user.getId(), tokenValue, Duration.ofHours(1));
         return tokenValue;
     }
-  }
+}
 

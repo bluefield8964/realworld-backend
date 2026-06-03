@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import com.google.gson.JsonPrimitive;
-import org.mockito.MockedStatic;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
@@ -14,31 +13,31 @@ import org.springframework.data.redis.core.ValueOperations;
 import realworld_backend.commerce.event.BusinessEventType;
 import realworld_backend.commerce.model.core.ProviderRawEvent;
 import realworld_backend.commerce.model.checkoutPayment.CheckoutSessionWebhookEvent;
-import realworld_backend.commerce.service.core.WebhookContext;
-import realworld_backend.commerce.service.impl.parser.WebhookObjectParserRouter;
-import realworld_backend.commerce.service.subscription.CustomerSubscriptionService;
-import realworld_backend.commerce.service.subscription.SubscriptionHistoryService;
+import realworld_backend.commerce.service.webhook.CheckoutSessionWebhookService;
+import realworld_backend.commerce.service.webhook.PaymentFailureEscalationService;
+import realworld_backend.commerce.service.webhook.core.WebhookContext;
+import realworld_backend.commerce.service.webhook.parser.WebhookObjectParserRouter;
+import realworld_backend.commerce.service.order.OrderService;
+import realworld_backend.commerce.service.statemachine.OrderWebhookStateMachine;
+import realworld_backend.commerce.service.subscription.checkout.SubscriptionCheckoutSessionWebhookService;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CheckoutSessionWebhookServiceModeSplitTest {
 
     @Mock
+    private PaymentFailureEscalationService paymentFailureEscalationService;
+    @Mock
     private AbnormalOrchestrator abnormalOrchestrator;
-    @Mock
-    private realworld_backend.commerce.repository.OrderRepository orderRepository;
-    @Mock
-    private realworld_backend.commerce.repository.PaymentRepository paymentRepository;
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
     @Mock
@@ -52,30 +51,32 @@ class CheckoutSessionWebhookServiceModeSplitTest {
     @Mock
     private PaymentService paymentService;
     @Mock
-    private CustomerSubscriptionService customerSubscriptionService;
+    private OrderService orderService;
     @Mock
-    private SubscriptionHistoryService subscriptionHistoryService;
+    private SubscriptionCheckoutSessionWebhookService subscriptionCheckoutSessionWebhookService;
 
     private CheckoutSessionWebhookService checkoutSessionWebhookService;
+    private OrderWebhookStateMachine orderWebhookStateMachine;
 
     @BeforeEach
     void setUp() {
+        orderWebhookStateMachine = new OrderWebhookStateMachine();
         checkoutSessionWebhookService = new CheckoutSessionWebhookService(
+                paymentFailureEscalationService,
                 abnormalOrchestrator,
-                orderRepository,
-                paymentRepository,
+                orderService,
                 redisTemplate,
                 redissonClient,
                 webhookObjectParserRouter,
                 paymentService,
-                customerSubscriptionService,
-                subscriptionHistoryService
+                orderWebhookStateMachine,
+                subscriptionCheckoutSessionWebhookService
         );
 
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get(anyString())).thenReturn("idempotent_hit");
-        when(redissonClient.getLock(anyString())).thenReturn(lock);
-        when(lock.isHeldByCurrentThread()).thenReturn(false);
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(valueOperations.get(anyString())).thenReturn("idempotent_hit");
+        lenient().when(redissonClient.getLock(anyString())).thenReturn(lock);
+        lenient().when(lock.isHeldByCurrentThread()).thenReturn(false);
     }
 
     @Test
@@ -93,10 +94,7 @@ class CheckoutSessionWebhookServiceModeSplitTest {
                 .when(webhookObjectParserRouter)
                 .parseAs(any(), any(), eq(CheckoutSessionWebhookEvent.class));
 
-        try (MockedStatic<CheckoutSessionWebhookEvent> mockedStatic = mockStatic(CheckoutSessionWebhookEvent.class)) {
-            mockedStatic.when(() -> CheckoutSessionWebhookEvent.parseProviderRawEvent(rowEvent)).thenReturn(event);
-            assertDoesNotThrow(() -> checkoutSessionWebhookService.handleCheckoutSessionCompleted(ctx));
-        }
+        assertDoesNotThrow(() -> checkoutSessionWebhookService.handleCheckoutSessionCompleted(ctx));
         assertEquals("order_123", ctx.getTrackingId());
         assertEquals("cs_pay_123", ctx.getProviderTrackingId());
         verify(webhookObjectParserRouter).parseAs(
@@ -117,13 +115,25 @@ class CheckoutSessionWebhookServiceModeSplitTest {
                 .providerRawEvent(rowEvent)
                 .build();
 
-        try (MockedStatic<CheckoutSessionWebhookEvent> mockedStatic = mockStatic(CheckoutSessionWebhookEvent.class)) {
-            mockedStatic.when(() -> CheckoutSessionWebhookEvent.parseProviderRawEvent(rowEvent)).thenReturn(event);
-            assertDoesNotThrow(() -> checkoutSessionWebhookService.handleCheckoutSessionCompleted(ctx));
-        }
+        doReturn(event)
+                .when(webhookObjectParserRouter)
+                .parseAs(any(), any(), eq(CheckoutSessionWebhookEvent.class));
+        doAnswer(invocation -> {
+            WebhookContext webhookContext = invocation.getArgument(0);
+            CheckoutSessionWebhookEvent.CheckoutSessionObject session = invocation.getArgument(1);
+            webhookContext.setTrackingId(session.getMetadata().get("subscriptionNo"));
+            webhookContext.setProviderTrackingId(session.getId());
+            return null;
+        }).when(subscriptionCheckoutSessionWebhookService).handleSubscriptionCheckoutCompletedEvent(any(), any());
+
+        assertDoesNotThrow(() -> checkoutSessionWebhookService.handleCheckoutSessionCompleted(ctx));
         assertEquals("sub_no_123", ctx.getTrackingId());
         assertEquals("cs_sub_123", ctx.getProviderTrackingId());
-        verify(webhookObjectParserRouter, never()).parseAs(any(), any(), any());
+        verify(webhookObjectParserRouter).parseAs(
+                any(),
+                eq(BusinessEventType.CHECKOUT_SESSION_COMPLETED),
+                eq(CheckoutSessionWebhookEvent.class)
+        );
     }
 
     private ProviderRawEvent buildCheckoutCompletedRowEvent() {
@@ -163,4 +173,3 @@ class CheckoutSessionWebhookServiceModeSplitTest {
                 .build();
     }
 }
-

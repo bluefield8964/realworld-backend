@@ -3,13 +3,14 @@ package realworld_backend.commerce.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import realworld_backend.commerce.service.core.PaymentChannelException;
-import realworld_backend.common.exception.BizException;
-import realworld_backend.common.exception.ErrorCode;
 import realworld_backend.commerce.model.Payment;
 import realworld_backend.commerce.model.PaymentStatus;
 import realworld_backend.commerce.repository.PaymentRepository;
+import realworld_backend.commerce.service.core.PaymentChannelException;
+import realworld_backend.common.exception.BizException;
+import realworld_backend.common.exception.ErrorCode;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -26,7 +27,7 @@ public class PaymentService {
     /**
      * Initial ledger row before Stripe session creation.
      */
-    public void recordInit(String orderNo,String provider) {
+    public void recordInit(String orderNo, String provider) {
         Payment payment = new Payment();
         payment.setOrderNo(orderNo);
         payment.setStatus(PaymentStatus.INIT);
@@ -46,30 +47,6 @@ public class PaymentService {
         payment.setRequestId(stripeException.getRequestId());
         paymentRepository.save(payment);
     }
-
-
-    /**
-     * Persist Stripe session-create failure details.
-     */
-    public void recordFailEnding(Payment payment,PaymentStatus status, String eventType) {
-
-        payment.setStatus(status);
-        payment.setErrorMsg(eventType);
-
-        paymentRepository.save(payment);
-    }
-
-    /**
-     * Mark payment as PROCESSING with session ID.
-     */
-    public void recordProcessing(String orderNo, String sessionId) {
-        Payment payment = paymentRepository.findByOrderNo(orderNo)
-                .orElseThrow(() -> new BizException(ErrorCode.PAYMENT_NOT_FOUND));
-        payment.setSessionId(sessionId);
-        payment.setStatus(PaymentStatus.PROCESSING);
-        paymentRepository.save(payment);
-    }
-
     /**
      * Mark payment as PAYING with session ID.
      */
@@ -92,14 +69,20 @@ public class PaymentService {
             return null;
         }
     }
-    public int markPaidIfNotPaid(String sessionId) {
 
-        return paymentRepository.markPaidIfNotPaid(sessionId);
+    public int markPaidIfNotPaid(String sessionId) {
+        java.util.List<PaymentStatus> allowedStatuses =
+                List.of(PaymentStatus.PAYING,PaymentStatus.PROCESSING,PaymentStatus.SUCCESS);
+        return paymentRepository.markPaidIfNotPaid(sessionId, allowedStatuses);
     }
 
     public void saveReconcilePayment(Payment payment) {
         // Used by abnormal-order fix path.
         paymentRepository.save(payment);
+    }
+
+    public int markFromStatusToStatus(Long id, PaymentStatus fromStatus, PaymentStatus toStatus) {
+        return paymentRepository.markFromStatusToStatus(id,fromStatus,toStatus);
     }
 }
 

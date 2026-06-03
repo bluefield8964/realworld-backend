@@ -59,7 +59,7 @@ public class CustomerSubscription {
     // Subscription cycle truth
     private LocalDateTime currentPeriodStart;
 
-    @Column(nullable = false, length = 120,unique = true)
+    @Column(length = 120, unique = true)
     private String activeKey;
 
     @Column(nullable = false, length = 120)
@@ -73,6 +73,10 @@ public class CustomerSubscription {
     private Boolean cancelAtPeriodEnd;
 
     private LocalDateTime canceledAt;
+
+    private LocalDateTime lastCheckoutEventCreatedAt;
+
+    private LocalDateTime lastLifecycleEventCreatedAt;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

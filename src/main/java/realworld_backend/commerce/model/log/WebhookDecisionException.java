@@ -1,6 +1,6 @@
 package realworld_backend.commerce.model.log;
 
-import realworld_backend.commerce.service.core.WebhookDecision;
+import realworld_backend.commerce.service.webhook.core.WebhookDecision;
 
 public class WebhookDecisionException  extends RuntimeException{
     private final WebhookDecision decision;

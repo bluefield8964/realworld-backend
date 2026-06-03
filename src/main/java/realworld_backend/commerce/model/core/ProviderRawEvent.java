@@ -4,7 +4,7 @@ import com.stripe.model.Event;
 import lombok.Builder;
 import lombok.Data;
 import realworld_backend.commerce.event.BusinessEventType;
-import realworld_backend.commerce.service.core.EventAnticorruptionLayer;
+import realworld_backend.commerce.service.webhook.core.EventAnticorruptionLayer;
 import realworld_backend.commerce.service.core.ProviderTimeMapper;
 
 import java.time.Instant;
@@ -37,7 +37,7 @@ public class ProviderRawEvent {
 
     public static ProviderRawEvent fromProviderEvent(Event event, String provider) {
         String json = event.getData().getObject().toJson();
-        BusinessEventType eventType = EventAnticorruptionLayer.convertStripeEvent(event.getType(), json);
+        BusinessEventType eventType = EventAnticorruptionLayer.convertProviderEvent(event.getType());
 
         return ProviderRawEvent.builder()
                 .provider(provider)

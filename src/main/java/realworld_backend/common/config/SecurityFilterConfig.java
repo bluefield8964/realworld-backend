@@ -28,12 +28,14 @@ public class SecurityFilterConfig {
     private JwtAccessDeniedEntryPoint accessDeniedEntryPoint;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/homePage", "/api/users", "/api/webhook/**","/auth/users/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/metrics", "/actuator/metrics/**", "/actuator/prometheus").permitAll()
+                        .requestMatchers("/login", "/homePage", "/api/users", "/api/users/login", "/api/users/refresh", "/api/logout", "/api/webhook/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/articles/*/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/profiles/*").permitAll()

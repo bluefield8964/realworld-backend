@@ -28,7 +28,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token: jsonpath "$.data.user.token"
+token: jsonpath "$.data.user.bearer"
 
 POST {{host}}/api/articles
 Authorization: Bearer {{token}}

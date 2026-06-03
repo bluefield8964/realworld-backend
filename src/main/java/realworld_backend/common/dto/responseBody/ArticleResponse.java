@@ -81,6 +81,7 @@ public class ArticleResponse {
     private LocalDateTime updatedAt;
     private Boolean favorited;
     private Long favoritesCount;
+    private ArticleAccessResponse access;
 
     private static List<String> mapTagNames(Article article) {
         return article.getTagList().stream()

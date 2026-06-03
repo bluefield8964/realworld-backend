@@ -1,5 +1,7 @@
 package realworld_backend.commerce.service.subscription;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import realworld_backend.commerce.model.log.AbnormalOrder;
@@ -87,7 +89,7 @@ public class SubscriptionAbnormalService {
     }
 
     private boolean claimReconciling(String providerTrackingId, AbnormalOrder retryCandidate) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         int updated = abnormalOrderRepository.updateStatusToReconcilingBySessionId(
                 providerTrackingId,
                 AbnormalOrderStatus.RECONCILING,
@@ -416,7 +418,7 @@ public class SubscriptionAbnormalService {
         }
 
         if (changed) {
-            local.setUpdatedAt(LocalDateTime.now());
+            local.setUpdatedAt(UtcTimeMapper.nowUtc());
             customerSubscriptionService.save(local);
         }
     }
@@ -439,7 +441,7 @@ public class SubscriptionAbnormalService {
             changed = true;
         }
         if (changed) {
-            local.setUpdatedAt(LocalDateTime.now());
+            local.setUpdatedAt(UtcTimeMapper.nowUtc());
             customerSubscriptionService.save(local);
         }
     }
@@ -477,7 +479,7 @@ public class SubscriptionAbnormalService {
     }
 
     public void markManualReview(AbnormalOrder retryCandidate, String message) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setStatus(AbnormalOrderStatus.MANUAL_REVIEW);
         retryCandidate.setUpdatedAt(now);
         retryCandidate.setLastRetryAt(now);
@@ -488,7 +490,7 @@ public class SubscriptionAbnormalService {
 
     private void scheduleRetry(AbnormalOrder retryCandidate, String message) {
         int nextRetryCount = retryCandidate.getRetryCount() + 1;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setRetryCount(nextRetryCount);
         retryCandidate.setLastRetryAt(now);
         retryCandidate.setUpdatedAt(now);
@@ -503,7 +505,7 @@ public class SubscriptionAbnormalService {
     }
 
     private void markFixed(AbnormalOrder retryCandidate, String message) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setStatus(AbnormalOrderStatus.FIXED);
         retryCandidate.setUpdatedAt(now);
         retryCandidate.setLastRetryAt(now);
@@ -523,3 +525,4 @@ public class SubscriptionAbnormalService {
         return value;
     }
 }
+

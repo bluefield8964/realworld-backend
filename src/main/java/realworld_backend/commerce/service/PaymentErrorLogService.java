@@ -1,5 +1,7 @@
 package realworld_backend.commerce.service;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,10 +22,11 @@ public class PaymentErrorLogService {
         errorLog.setRequestId(requestId);
         errorLog.setErrorCode(errorCode);
         errorLog.setErrorMessage(message);
-        errorLog.setTimestamp(LocalDateTime.now());
+        errorLog.setTimestamp(UtcTimeMapper.nowUtc());
         errorLog.setProvider(provider);
         paymentErrorLogRepository.save(errorLog);
         log.error("save error log:{}",errorLog);
     }
 }
+
 

@@ -53,6 +53,19 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByActiveKey(String activeKey);
 
-    Boolean existsBySessionIdAndStatus(String sessionId, OrderStatus orderStatus);
+    @Modifying
+    @Query("""
+    update Order o
+       set o.status = :toStatus,
+           o.activeKey = case when :clearActiveKey = true then null else o.activeKey end,
+           o.updatedAt = :now
+     where o.id = :id
+       and o.status = :fromStatus
+""")
+    int markFromStatusToStatus(@Param("id")Long id,@Param("fromStatus") OrderStatus fromStatus,
+                               @Param("toStatus") OrderStatus toStatus,
+                               @Param("clearActiveKey") boolean clearActiveKey,
+                               @Param("now")  LocalDateTime now);
+
 }
 

@@ -1,4 +1,4 @@
-﻿# Register empty username
+# Register empty username
 POST {{host}}/api/users
 {
   "user": {
@@ -57,7 +57,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token: jsonpath "$.data.user.token"
+token: jsonpath "$.data.user.bearer"
 
 # Register duplicate username
 POST {{host}}/api/users

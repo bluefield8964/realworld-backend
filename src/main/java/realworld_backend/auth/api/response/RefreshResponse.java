@@ -1,10 +1,14 @@
 package realworld_backend.auth.api.response;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import realworld_backend.auth.application.result.LoginResult;
 import realworld_backend.auth.domain.model.TokenPair;
 
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
 public class RefreshResponse {
     private String accessToken;
     private LocalDateTime accessTokenExpiresAt;

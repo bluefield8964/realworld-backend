@@ -1,9 +1,13 @@
 package realworld_backend.auth.api.response;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import realworld_backend.auth.application.result.LoginResult;
 
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
 public class LoginResponse {
     private boolean success;
     private boolean mfaRequired;

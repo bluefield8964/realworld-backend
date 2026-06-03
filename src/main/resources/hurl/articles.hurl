@@ -9,7 +9,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token: jsonpath "$.data.user.token"
+token: jsonpath "$.data.user.bearer"
 
 # Create article with tags
 POST {{host}}/api/articles

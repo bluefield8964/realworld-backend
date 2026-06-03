@@ -11,21 +11,25 @@ import realworld_backend.commerce.service.order.OrderService;
 import realworld_backend.commerce.service.subscription.SubscriptionService;
 import realworld_backend.common.web.resolver.CurrentUser;
 
-@RestController
-@RequestMapping("/api/payment")
-@RequiredArgsConstructor
 /**
  * Checkout creation entrypoint for both one-time orders and subscriptions.
  */
+@RestController
+@RequestMapping("/api/payment")
+@RequiredArgsConstructor
 public class PaymentController {
-
     private final OrderService orderService;
     private final SubscriptionService subscriptionService;
+
     /**
      * Create or reuse a payable order and return the checkout URL.
      */
     @PostMapping("/createOrder")
-    public String createOrderCheckout(@CurrentUser CurrentAuthUser authUser, @RequestParam("provider") String provider, @RequestParam("productId") Long productId) throws Exception {
+    public String createOrderCheckout(
+            @CurrentUser CurrentAuthUser authUser,
+            @RequestParam("provider") String provider,
+            @RequestParam("productId") Long productId
+    ) throws Exception {
         return orderService.createOrReuseOrderCheckout(authUser, provider, productId);
     }
 
@@ -33,9 +37,11 @@ public class PaymentController {
      * Create or reuse a subscription checkout and return the checkout URL.
      */
     @PostMapping("/createSubscription")
-    public String createSubscriptionCheckout(@CurrentUser CurrentAuthUser authUser, @RequestParam("provider") ProviderType provider, @RequestParam("planCode") String planCode) throws Exception {
+    public String createSubscriptionCheckout(
+            @CurrentUser CurrentAuthUser authUser,
+            @RequestParam("provider") ProviderType provider,
+            @RequestParam("planCode") String planCode
+    ) throws Exception {
         return subscriptionService.createOrReuseSubscriptionCheckout(authUser, provider, planCode);
     }
 }
-
-

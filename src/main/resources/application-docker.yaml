@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/realworld?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: lention
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${WEBHOOK_SECRET}
+  checkout:
+    order:
+      success-url: ${STRIPE_ORDER_SUCCESS_URL:}
+      cancel-url: ${STRIPE_ORDER_CANCEL_URL:}
+    subscription:
+      success-url: ${STRIPE_SUBSCRIPTION_SUCCESS_URL:}
+      cancel-url: ${STRIPE_SUBSCRIPTION_CANCEL_URL:}

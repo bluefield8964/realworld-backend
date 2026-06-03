@@ -1,5 +1,7 @@
 package realworld_backend.commerce.service.order;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -100,7 +102,7 @@ public class OrderService {
             return existingOrder.get();
         }
         // DB unique key is the last race guard across concurrent workers.
-        Order order = Order.builder().createdAt(LocalDateTime.now())
+        Order order = Order.builder().createdAt(UtcTimeMapper.nowUtc())
                 .orderNo(orderNo)
                 .userId(userId)
                 .paymentUrl("")
@@ -155,19 +157,25 @@ public class OrderService {
             log.info("order:{} is exist", order.getOrderNo());
             return order;
         } else {
-
             log.info("order:{} not found", sessionId);
             return null;
         }
 
     }
 
-    public Boolean findBySessionIdAndStatus(String sessionId, OrderStatus orderStatus) {
-        return orderRepository.existsBySessionIdAndStatus(sessionId, orderStatus);
-    }
-
     public void saveReconcileOrder(Order order) {
         orderRepository.save(order);
     }
+
+    public int markFromStatusToStatus(
+            Long id,
+            OrderStatus fromStatus,
+            OrderStatus toStatus,
+            boolean clearActiveKey,
+            LocalDateTime now
+    ) {
+        return orderRepository.markFromStatusToStatus(id, fromStatus, toStatus, clearActiveKey, now);
+    }
 }
+
 

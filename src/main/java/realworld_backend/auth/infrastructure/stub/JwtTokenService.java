@@ -1,5 +1,7 @@
 package realworld_backend.auth.infrastructure.stub;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +30,7 @@ public class JwtTokenService implements TokenService {
         //access token already insert into redis
         String accessToken = tokenTool.generateAuthToken(user, sessionId);
         String refreshToken = authRefreshTokenService.generateRefreshToken(user.getId(), session.getDeviceId(), sessionId);
-        LocalDateTime localDateTime = LocalDateTime.now().plusHours(1);
+        LocalDateTime localDateTime = UtcTimeMapper.nowUtc().plusHours(1);
         return new TokenPair(accessToken, refreshToken, localDateTime);
     }
 
@@ -36,8 +38,9 @@ public class JwtTokenService implements TokenService {
     public TokenPair issueRefreshedTokenPair(String sessionId, String refreshToken, UserAuthProfile user) {
 
         String accessToken = tokenTool.generateAuthToken(user, sessionId);
-        LocalDateTime localDateTime = LocalDateTime.now().plusHours(1);
+        LocalDateTime localDateTime = UtcTimeMapper.nowUtc().plusHours(1);
         return new TokenPair(accessToken, refreshToken, localDateTime);
     }
 
 }
+

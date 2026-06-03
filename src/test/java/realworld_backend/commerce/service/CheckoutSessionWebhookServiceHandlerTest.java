@@ -16,25 +16,24 @@ import realworld_backend.commerce.model.Payment;
 import realworld_backend.commerce.model.PaymentStatus;
 import realworld_backend.commerce.model.checkoutPayment.CheckoutSessionWebhookEvent;
 import realworld_backend.commerce.model.core.ProviderRawEvent;
-import realworld_backend.commerce.service.core.WebhookContext;
-import realworld_backend.commerce.service.impl.parser.WebhookObjectParserRouter;
-import realworld_backend.commerce.service.subscription.CustomerSubscriptionService;
-import realworld_backend.commerce.service.subscription.SubscriptionHistoryService;
+import realworld_backend.commerce.service.webhook.CheckoutSessionWebhookService;
+import realworld_backend.commerce.service.webhook.PaymentFailureEscalationService;
+import realworld_backend.commerce.service.webhook.core.WebhookContext;
+import realworld_backend.commerce.service.webhook.parser.WebhookObjectParserRouter;
+import realworld_backend.commerce.service.order.OrderService;
+import realworld_backend.commerce.service.statemachine.OrderWebhookStateMachine;
+import realworld_backend.commerce.service.subscription.checkout.SubscriptionCheckoutSessionWebhookService;
 import realworld_backend.commerce.support.WebhookTestPayloadFactory;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -44,11 +43,9 @@ import static org.mockito.Mockito.when;
 class CheckoutSessionWebhookServiceHandlerTest {
 
     @Mock
+    private PaymentFailureEscalationService paymentFailureEscalationService;
+    @Mock
     private AbnormalOrchestrator abnormalOrchestrator;
-    @Mock
-    private realworld_backend.commerce.repository.OrderRepository orderRepository;
-    @Mock
-    private realworld_backend.commerce.repository.PaymentRepository paymentRepository;
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
     @Mock
@@ -62,24 +59,26 @@ class CheckoutSessionWebhookServiceHandlerTest {
     @Mock
     private PaymentService paymentService;
     @Mock
-    private CustomerSubscriptionService customerSubscriptionService;
+    private OrderService orderService;
     @Mock
-    private SubscriptionHistoryService subscriptionHistoryService;
+    private SubscriptionCheckoutSessionWebhookService subscriptionCheckoutSessionWebhookService;
 
     private CheckoutSessionWebhookService checkoutSessionWebhookService;
+    private OrderWebhookStateMachine orderWebhookStateMachine;
 
     @BeforeEach
     void setUp() {
+        orderWebhookStateMachine = new OrderWebhookStateMachine();
         checkoutSessionWebhookService = new CheckoutSessionWebhookService(
+                paymentFailureEscalationService,
                 abnormalOrchestrator,
-                orderRepository,
-                paymentRepository,
+                orderService,
                 redisTemplate,
                 redissonClient,
                 webhookObjectParserRouter,
                 paymentService,
-                customerSubscriptionService,
-                subscriptionHistoryService
+                orderWebhookStateMachine,
+                subscriptionCheckoutSessionWebhookService
         );
 
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -109,15 +108,19 @@ class CheckoutSessionWebhookServiceHandlerTest {
                 .parseAs(any(), any(), eq(CheckoutSessionWebhookEvent.class));
         when(valueOperations.get(anyString())).thenReturn(null);
         when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
-        when(orderRepository.markPaidIfNotPaid(eq("cs_pay_123"), any())).thenReturn(1);
-        when(paymentService.markPaidIfNotPaid("cs_pay_123")).thenReturn(1);
+        Order order = Order.builder().id(1L).orderNo("order_123").sessionId("cs_pay_123").status(OrderStatus.PENDING).build();
+        Payment payment = Payment.builder().id(2L).orderNo("order_123").sessionId("cs_pay_123").status(PaymentStatus.PROCESSING).build();
+        when(orderService.findBySessionId("cs_pay_123")).thenReturn(order);
+        when(paymentService.findBySessionId("cs_pay_123")).thenReturn(payment);
+        when(orderService.markFromStatusToStatus(eq(1L), eq(OrderStatus.PENDING), eq(OrderStatus.PAID), eq(true), any())).thenReturn(1);
+        when(paymentService.markFromStatusToStatus(eq(2L), eq(PaymentStatus.PROCESSING), eq(PaymentStatus.SUCCESS))).thenReturn(1);
 
         assertDoesNotThrow(() -> checkoutSessionWebhookService.handleCheckoutSessionCompleted(ctx));
 
         assertEquals("order_123", ctx.getTrackingId());
         assertEquals("cs_pay_123", ctx.getProviderTrackingId());
-        verify(orderRepository).markPaidIfNotPaid(eq("cs_pay_123"), any());
-        verify(paymentService).markPaidIfNotPaid("cs_pay_123");
+        verify(orderService).markFromStatusToStatus(eq(1L), eq(OrderStatus.PENDING), eq(OrderStatus.PAID), eq(true), any());
+        verify(paymentService).markFromStatusToStatus(eq(2L), eq(PaymentStatus.PROCESSING), eq(PaymentStatus.SUCCESS));
     }
 
     @Test
@@ -165,12 +168,14 @@ class CheckoutSessionWebhookServiceHandlerTest {
                 .build();
 
         Order order = Order.builder()
+                .id(3L)
                 .orderNo("order_456")
                 .sessionId("cs_fail_123")
                 .status(OrderStatus.PENDING)
                 .activeKey("active_key")
                 .build();
         Payment payment = Payment.builder()
+                .id(4L)
                 .orderNo("order_456")
                 .sessionId("cs_fail_123")
                 .status(PaymentStatus.PROCESSING)
@@ -179,25 +184,20 @@ class CheckoutSessionWebhookServiceHandlerTest {
         doReturn(event)
                 .when(webhookObjectParserRouter)
                 .parseAs(any(), any(), eq(CheckoutSessionWebhookEvent.class));
-        when(orderRepository.findBySessionId("cs_fail_123")).thenReturn(Optional.of(order));
+        when(valueOperations.get(anyString())).thenReturn(null);
+        when(lock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
+        when(orderService.findBySessionId("cs_fail_123")).thenReturn(order);
         when(paymentService.findBySessionId("cs_fail_123")).thenReturn(payment);
-        doNothing().when(paymentService).recordFailEnding(
-                eq(payment),
-                eq(PaymentStatus.FAILED),
-                eq(BusinessEventType.CHECKOUT_SESSION_ASYNC_PAYMENT_FAILED.toString())
-        );
+        when(orderService.markFromStatusToStatus(eq(3L), eq(OrderStatus.PENDING), eq(OrderStatus.PAYMENT_FAILED_RETRYABLE), eq(false), any())).thenReturn(1);
+        when(paymentService.markFromStatusToStatus(eq(4L), eq(PaymentStatus.PROCESSING), eq(PaymentStatus.FAILED))).thenReturn(1);
 
         assertDoesNotThrow(() -> checkoutSessionWebhookService.handleCheckoutSessionAsyncPaymentFailed(ctx));
 
         assertEquals("order_456", ctx.getTrackingId());
         assertEquals("cs_fail_123", ctx.getProviderTrackingId());
-        assertEquals(OrderStatus.PAYMENT_FAILED_RETRYABLE, order.getStatus());
-        assertNull(order.getActiveKey());
-        verify(paymentService).recordFailEnding(
-                eq(payment),
-                eq(PaymentStatus.FAILED),
-                eq(BusinessEventType.CHECKOUT_SESSION_ASYNC_PAYMENT_FAILED.toString())
-        );
-        verify(paymentRepository).save(payment);
+        assertEquals(OrderStatus.PENDING, order.getStatus());
+        assertEquals("active_key", order.getActiveKey());
+        verify(orderService).markFromStatusToStatus(eq(3L), eq(OrderStatus.PENDING), eq(OrderStatus.PAYMENT_FAILED_RETRYABLE), eq(false), any());
+        verify(paymentService).markFromStatusToStatus(eq(4L), eq(PaymentStatus.PROCESSING), eq(PaymentStatus.FAILED));
     }
 }

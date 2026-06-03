@@ -70,25 +70,29 @@ public enum ErrorCode {
     //--- Subscription ---
     SUBSCRIPTION_ALREADY_CREATED(7101, "subscription already created"),
     CUSTOMER_SUBSCRIPTION_NOT_FOUND(7102, "subscription not found"),
-    SUBSCRIPTION_SESSION_NOT_FOUND(7103,"subscription session not found" ),
+    SUBSCRIPTION_SESSION_NOT_FOUND(7103, "subscription session not found"),
     SUBSCRIPTION_HISTORY_NOT_FOUND(7104, "subscription history not found"),
+    SUBSCRIPTION_STATUS_CHANGE_FAIL(7107, "subscription status change fail"),
     SUBSCRIPTION_PLAN_NOT_FOUND(7105, "subscription plan not found"),
+    SUBSCRIPTION_REQUIRED(7106, "active subscription required"),
 
     // --- Payment ---
-    PAYMENT_NOT_FOUND(7003, "Payment not found"),
-    PAYMENT_URL_MISSING(7004, "Payment URL missing"),
+    PAYMENT_NOT_FOUND(7303, "Payment not found"),
+    PAYMENT_URL_MISSING(7304, "Payment URL missing"),
+    PAYMENT_STATUS_CHANGE_FAIL(7305, "Payment status change failed "),
     // --- Stripe ---
     STRIPE_SESSION_NOT_FOUND(7005, "Stripe session not found"),
     STRIPE_SESSION_CREATION_FAIL(7006, "Stripe session creation failed"),
-
+    PROVIDER_SESSION_NOT_FOUND(7007, "Provider session not found"),
     // ---- INVOICE ----
-    INVOICE_SESSION_NOT_FOUND(7201,"invoice session not found" ),
+    INVOICE_SESSION_NOT_FOUND(7201, "invoice session not found"),
+    INVOICE_INSERT_FAILED(7202 , "invoice insert failed" ),
     // --- Event / JSON ---
     JSON_ERROR(7007, "JSON error"),
     EVENT_PROCESSING(7008, "Event processing error"),
 
     STATEMENT_DOES_NOT_MATCH_EVENT_TYPE(7009, "statement doesn't match eventType"),
-    EVENT_NOT_FOUND(7010,"event not found" ),
+    EVENT_NOT_FOUND(7010, "event not found"),
     // --- Lock ---
     LOCK_CANNOT_ACQUIRE(8101, "Lock cannot be acquired"),
     LOCK_INTERRUPTED(8110, "Lock interrupted"),

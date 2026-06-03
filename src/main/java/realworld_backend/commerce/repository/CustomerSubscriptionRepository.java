@@ -8,6 +8,8 @@ import realworld_backend.commerce.model.subscription.CustomerSubscription;
 import realworld_backend.commerce.model.subscription.enums.SubscriptionStatus;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSubscription, Long> {
@@ -18,11 +20,13 @@ public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSu
             INSERT INTO customer_subscriptions
             (subscription_no, user_id, plan_id, provider, subscription_url, status,
              provider_subscription_id, provider_customer_id, current_period_start, active_key,
-             current_period_end, cancel_at_period_end, canceled_at, created_at, updated_at)
+             current_period_end, cancel_at_period_end, canceled_at, last_checkout_event_created_at,
+             last_lifecycle_event_created_at, created_at, updated_at)
             VALUES
             (:subscriptionNo, :userId, :planId, :provider, :subscriptionUrl, :status,
              :providerSubscriptionId, :providerCustomerId, :currentPeriodStart, :activeKey,
-             :currentPeriodEnd, :cancelAtPeriodEnd, :canceledAt, :createdAt, :updatedAt)
+             :currentPeriodEnd, :cancelAtPeriodEnd, :canceledAt, :lastCheckoutEventCreatedAt,
+             :lastLifecycleEventCreatedAt, :createdAt, :updatedAt)
             ON DUPLICATE KEY UPDATE
                 user_id = VALUES(user_id),
                 plan_id = VALUES(plan_id),
@@ -36,6 +40,8 @@ public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSu
                 current_period_end = COALESCE(VALUES(current_period_end), current_period_end),
                 cancel_at_period_end = COALESCE(VALUES(cancel_at_period_end), cancel_at_period_end),
                 canceled_at = VALUES(canceled_at),
+                last_checkout_event_created_at = COALESCE(VALUES(last_checkout_event_created_at), last_checkout_event_created_at),
+                last_lifecycle_event_created_at = COALESCE(VALUES(last_lifecycle_event_created_at), last_lifecycle_event_created_at),
                 updated_at = VALUES(updated_at)
             """, nativeQuery = true)
     int upsertBySubscriptionNo(
@@ -52,6 +58,8 @@ public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSu
             @Param("currentPeriodEnd") LocalDateTime currentPeriodEnd,
             @Param("cancelAtPeriodEnd") Boolean cancelAtPeriodEnd,
             @Param("canceledAt") LocalDateTime canceledAt,
+            @Param("lastCheckoutEventCreatedAt") LocalDateTime lastCheckoutEventCreatedAt,
+            @Param("lastLifecycleEventCreatedAt") LocalDateTime lastLifecycleEventCreatedAt,
             @Param("createdAt") LocalDateTime createdAt,
             @Param("updatedAt") LocalDateTime updatedAt
     );
@@ -63,47 +71,19 @@ public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSu
                     s.currentPeriodStart = COALESCE(:periodStart, s.currentPeriodStart),
                     s.currentPeriodEnd = COALESCE(:periodEnd, s.currentPeriodEnd),
                     s.cancelAtPeriodEnd = COALESCE(:cancelAtPeriodEnd, s.cancelAtPeriodEnd),
+                    s.activeKey = case when :clearActiveKey = true then null else s.activeKey end,
                     s.updatedAt = :now
                 where s.subscriptionNo = :subscriptionNo
-                  and s.status = :fromStatus
+                  and s.status in :fromStatus
             """)
     int updateFromProviderIfStatusChanged(
             @Param("subscriptionNo") String subscriptionNo,
-            @Param("fromStatus") SubscriptionStatus fromStatus,
+            @Param("fromStatus") java.util.Collection<SubscriptionStatus> fromStatus,
             @Param("toStatus") SubscriptionStatus toStatus,
             @Param("periodStart") LocalDateTime periodStart,
             @Param("periodEnd") LocalDateTime periodEnd,
             @Param("cancelAtPeriodEnd") Boolean cancelAtPeriodEnd,
-            @Param("now") LocalDateTime now
-    );
-
-    @Modifying
-    @Query("""
-                update CustomerSubscription s
-                set s.status = :toStatus,
-                    s.updatedAt = :now
-                where s.subscriptionNo = :subscriptionNo
-                  and s.status in :fromStatuses
-            """)
-    int updateStatusToPastDue(
-            @Param("subscriptionNo") String subscriptionNo,
-            @Param("toStatus") SubscriptionStatus toStatus,
-            @Param("fromStatuses") java.util.Collection<SubscriptionStatus> fromStatuses,
-            @Param("now") LocalDateTime now
-    );
-
-    @Modifying
-    @Query("""
-                update CustomerSubscription s
-                set s.status = :toStatus,
-                    s.updatedAt = :now
-                where s.subscriptionNo = :subscriptionNo
-                  and s.status in :fromStatuses
-            """)
-    int updateStatusToActiveFromRecoverable(
-            @Param("subscriptionNo") String subscriptionNo,
-            @Param("toStatus") SubscriptionStatus toStatus,
-            @Param("fromStatuses") java.util.Collection<SubscriptionStatus> fromStatuses,
+            @Param("clearActiveKey") boolean clearActiveKey,
             @Param("now") LocalDateTime now
     );
 
@@ -112,5 +92,41 @@ public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSu
     Optional<CustomerSubscription> findByProviderSubscriptionId(String subscriptionId);
 
     Optional<CustomerSubscription> findByProviderCustomerId(String customer);
-}
 
+    List<CustomerSubscription> findByUser_IdOrderByCurrentPeriodEndDesc(Long userId);
+
+    List<CustomerSubscription> findTop100ByStatusInAndUpdatedAtBeforeOrderByUpdatedAtAsc(
+            Collection<SubscriptionStatus> statuses,
+            LocalDateTime updatedAt
+    );
+
+    @Modifying
+    @Query("""
+                update CustomerSubscription s
+                set s.lastCheckoutEventCreatedAt = :eventCreatedAt,
+                    s.updatedAt = :now
+                where s.subscriptionNo = :subscriptionNo
+                  and (:eventCreatedAt is not null)
+                  and (s.lastCheckoutEventCreatedAt is null or s.lastCheckoutEventCreatedAt < :eventCreatedAt)
+            """)
+    int markCheckoutEventObservedIfNewer(
+            @Param("subscriptionNo") String subscriptionNo,
+            @Param("eventCreatedAt") LocalDateTime eventCreatedAt,
+            @Param("now") LocalDateTime now
+    );
+
+    @Modifying
+    @Query("""
+                update CustomerSubscription s
+                set s.lastLifecycleEventCreatedAt = :eventCreatedAt,
+                    s.updatedAt = :now
+                where s.subscriptionNo = :subscriptionNo
+                  and (:eventCreatedAt is not null)
+                  and (s.lastLifecycleEventCreatedAt is null or s.lastLifecycleEventCreatedAt < :eventCreatedAt)
+            """)
+    int markLifecycleEventObservedIfNewer(
+            @Param("subscriptionNo") String subscriptionNo,
+            @Param("eventCreatedAt") LocalDateTime eventCreatedAt,
+            @Param("now") LocalDateTime now
+    );
+}

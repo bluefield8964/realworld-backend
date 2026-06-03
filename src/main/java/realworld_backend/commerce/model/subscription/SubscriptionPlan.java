@@ -40,6 +40,10 @@ public class SubscriptionPlan {
     @Column(length = 500)
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "feature_bundle_id")
+    private FeatureBundle featureBundle;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private PlanStatus status;

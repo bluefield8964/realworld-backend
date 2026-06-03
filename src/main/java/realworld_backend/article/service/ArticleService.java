@@ -1,5 +1,9 @@
 package realworld_backend.article.service;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,24 +18,21 @@ import realworld_backend.article.model.Tag;
 import realworld_backend.article.model.UserProfile;
 import realworld_backend.article.repository.ArticleRepository;
 import realworld_backend.article.repository.AuthorRepository;
+import realworld_backend.article.repository.CommentRepository;
 import realworld_backend.article.repository.UserProfileRepository;
 import realworld_backend.auth.api.request.CurrentAuthUser;
+import realworld_backend.commerce.service.subscription.SubscriptionAccessService;
 import realworld_backend.common.dto.requestBody.ArticleRequest;
 import realworld_backend.common.dto.responseBody.ArticleFeedResponse;
+import realworld_backend.common.dto.responseBody.ArticleAccessResponse;
 import realworld_backend.common.dto.responseBody.ArticleResponse;
 import realworld_backend.common.dto.responseBody.AuthorResponse;
 import realworld_backend.common.dto.responseBody.MultipleArticlesResponse;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,9 +44,11 @@ public class ArticleService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final AuthorService authorService;
     private final FollowingService followingService;
+    private final CommentRepository commentRepository;
     private final UserProfileRepository userProfileRepository;
     private final AuthorRepository authorRepository;
     private final ObjectMapper objectMapper;
+    private final SubscriptionAccessService subscriptionAccessService;
 
     public ArticleResponse createArticle(ArticleRequest articleRequest, CurrentAuthUser user) {
         //principal was injected user data
@@ -53,19 +56,11 @@ public class ArticleService {
         if (userId == null) {
             throw new BizException(ErrorCode.TOKEN_INVALID);
         }
-        // construct author
-        UserProfile redisUser = (UserProfile) redisTemplate.opsForValue().get("user:" + userId);
-        if (redisUser == null) {
-            redisUser = userProfileRepository.findById(userId).orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
-            redisTemplate.opsForValue().set("user:" + userId, redisUser);
-        }
-        Author author = Author.builder()
-                .username(redisUser.getUsername())
-                .id(redisUser.getId())
-                .userProfile(redisUser)
-                .build();
+        subscriptionAccessService.requireActiveSubscription(user);
+        UserProfile currentProfile = loadCurrentUserProfile(userId);
+        Author author = loadOrCreateAuthor(currentProfile);
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         ArticleRequest.ArticlePayload articleBody = articleRequest.getArticle();
         Set<Tag> tags = tagService.buildTags(articleBody.getTagList());
         Article article = Article.builder().title(articleBody.getTitle())
@@ -163,7 +158,6 @@ public class ArticleService {
     }
 
 
-
     @Transactional
     public ArticleResponse updateArticle(String slug, JsonNode requestBody, CurrentAuthUser user) {
         if (requestBody == null || requestBody.isNull()) {
@@ -192,8 +186,7 @@ public class ArticleService {
 
         Article article = articleReposity.findBySlug(slug)
                 .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
-        // checking authentication
-        if (!article.getAuthor().getId().equals(user.userId())) {
+        if (!isOwnedByCurrentUser(article, user.userId())) {
             throw new BizException(ErrorCode.TOKEN_INVALID);
         }
 
@@ -207,7 +200,7 @@ public class ArticleService {
             article.setTagList(tags);
         }
 
-        article.setUpdatedAt(LocalDateTime.now());
+        article.setUpdatedAt(UtcTimeMapper.nowUtc());
         Article save = articleReposity.save(article);
 
         ArticleResponse articleResponse = new ArticleResponse();
@@ -236,7 +229,6 @@ public class ArticleService {
         articleResponse.setTitle(article.getTitle());
         articleResponse.setSlug(article.getSlug());
         articleResponse.setDescription(article.getDescription());
-        articleResponse.setBody(article.getBody());
         List<String> list = article.getTagList().stream()
                 .map(Tag::getName)
                 .distinct()
@@ -247,13 +239,24 @@ public class ArticleService {
         articleResponse.setUpdatedAt(article.getUpdatedAt());
         articleResponse.setFavoritesCount(article.getFavoritesCount());
         Set<Long> followingIds = Collections.emptySet();
+        boolean canReadBody = user != null && user.userId() != null && (
+                isOwnedByCurrentUser(article, user.userId()) ||
+                        subscriptionAccessService.hasActiveSubscription(user.userId(), UtcTimeMapper.nowUtc())
+        );
         if (user != null) {
             followingIds = followingService.findFollowingIdsByFollowerId(user);
             articleResponse.setFavorited(favoriteService.checkFavorite(user, article));
-        }else {
+        } else {
             articleResponse.setFavorited(false);
         }
         articleResponse.setAuthorResponse(AuthorResponse.from(article.getAuthor().getUserProfile(), followingIds));
+        articleResponse.setBody(canReadBody ? article.getBody() : null);
+        articleResponse.setAccess(ArticleAccessResponse.builder()
+                .viewerState(user == null || user.userId() == null ? "UNAUTHENTICATED" : (canReadBody ? "FULL" : "LOCKED"))
+                .canReadBody(canReadBody)
+                .subscriptionRequired(true)
+                .bundleCode("CREATOR_PRO_BUNDLE")
+                .build());
 
         return articleResponse;
     }
@@ -298,12 +301,14 @@ public class ArticleService {
         return new MultipleArticlesResponse(result, totalCount);
     }
 
+    @Transactional
     public void deleteBySlug(String slug, CurrentAuthUser user) {
         Article article = articleReposity.findBySlug(slug)
                 .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
-        if (!article.getAuthor().getUserProfile().getId().equals(user.userId())) {
+        if (!isOwnedByCurrentUser(article, user.userId())) {
             throw new BizException(ErrorCode.WITHOUT_ARTICLE);
         }
+        commentRepository.deleteByArticle(article);
         articleReposity.delete(article);
     }
 
@@ -314,8 +319,7 @@ public class ArticleService {
         }
         Article article = articleReposity.findBySlug(slug)
                 .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
-        UserProfile userProfile = userProfileRepository.findById(user.userId())
-                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        UserProfile userProfile = loadCurrentUserProfile(user.userId());
         favoriteService.favoriteArticle(userProfile, article);
         return getArticleBySlug(slug, user);
     }
@@ -327,8 +331,7 @@ public class ArticleService {
         }
         Article article = articleReposity.findBySlug(slug)
                 .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
-        UserProfile userProfile = userProfileRepository.findById(user.userId())
-                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        UserProfile userProfile = loadCurrentUserProfile(user.userId());
         favoriteService.unfavoriteArticle(userProfile, article);
         return getArticleBySlug(slug, user);
     }
@@ -338,7 +341,43 @@ public class ArticleService {
         return title.toLowerCase().replace(" ", "-");
     }
 
-    public record ArticleQueryResult(List<ArticleResponse> articles, int totalCount) {}
+    private UserProfile loadCurrentUserProfile(Long userId) {
+        UserProfileCacheView cachedUser = (UserProfileCacheView) redisTemplate.opsForValue().get(UserProfileCacheView.key(userId));
+        if (cachedUser != null) {
+            return cachedUser.toEntity();
+        }
+        UserProfile userProfile = userProfileRepository.findByUserAuthId(userId)
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
+        redisTemplate.opsForValue().set(UserProfileCacheView.key(userId), UserProfileCacheView.from(userProfile));
+        return userProfile;
+    }
+
+    private Author loadOrCreateAuthor(UserProfile userProfile) {
+        if (userProfile == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND);
+        }
+        return authorRepository.findByUsername(userProfile.getUsername())
+                .orElseGet(() -> authorRepository.save(Author.builder()
+                        .username(userProfile.getUsername())
+                        .userProfile(userProfile)
+                        .build()));
+    }
+
+    private boolean isOwnedByCurrentUser(Article article, Long userAuthId) {
+        if (article == null || userAuthId == null) {
+            return false;
+        }
+        Author author = article.getAuthor();
+        if (author == null || author.getUserProfile() == null) {
+            return false;
+        }
+        Long authorUserAuthId = author.getUserProfile().getUserAuthId();
+        return userAuthId.equals(authorUserAuthId);
+    }
+
+    public record ArticleQueryResult(List<ArticleResponse> articles, int totalCount) {
+    }
 
 }
+
 

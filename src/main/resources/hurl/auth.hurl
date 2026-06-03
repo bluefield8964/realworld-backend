@@ -1,4 +1,4 @@
-﻿# Register
+# Register
 POST {{host}}/api/users
 {
   "user": {
@@ -16,15 +16,16 @@ jsonpath "$.data.user.username" == "auth_{{uid}}"
 jsonpath "$.data.user.email" == "auth_{{uid}}@test.com"
 jsonpath "$.data.user.bio" == null
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 [Captures]
-reg_token: jsonpath "$.data.user.token"
+reg_token: jsonpath "$.data.user.bearer"
 
 # Login
 POST {{host}}/api/users/login
 {
   "user": {
+    "username": "auth_{{uid}}",
     "email": "auth_{{uid}}@test.com",
     "password": "password123"
   }
@@ -38,10 +39,11 @@ jsonpath "$.data.user.username" == "auth_{{uid}}"
 jsonpath "$.data.user.email" == "auth_{{uid}}@test.com"
 jsonpath "$.data.user.bio" == null
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 [Captures]
-token: jsonpath "$.data.user.token"
+token: jsonpath "$.data.user.bearer"
+refresh_token: header "set-cookie" regex "refresh_token=([^;]+);"
 
 # Get current user
 GET {{host}}/api/user
@@ -55,8 +57,8 @@ jsonpath "$.data.user.username" == "auth_{{uid}}"
 jsonpath "$.data.user.email" == "auth_{{uid}}@test.com"
 jsonpath "$.data.user.bio" == null
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 
 # Update user
 PUT {{host}}/api/user
@@ -75,8 +77,8 @@ jsonpath "$.data.user.username" == "auth_{{uid}}"
 jsonpath "$.data.user.email" == "auth_{{uid}}@test.com"
 jsonpath "$.data.user.bio" == "Updated bio"
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 
 # Verify update persisted
 GET {{host}}/api/user
@@ -90,8 +92,8 @@ jsonpath "$.data.user.username" == "auth_{{uid}}"
 jsonpath "$.data.user.email" == "auth_{{uid}}@test.com"
 jsonpath "$.data.user.bio" == "Updated bio"
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 
 # Update user bio to empty string - should normalize to null
 PUT {{host}}/api/user
@@ -175,8 +177,8 @@ jsonpath "$.data.user.username" == "auth_{{uid}}"
 jsonpath "$.data.user.email" == "auth_{{uid}}@test.com"
 jsonpath "$.data.user.bio" == "Updated bio"
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 
 # Update user image
 PUT {{host}}/api/user
@@ -285,10 +287,10 @@ jsonpath "$.data.user.username" == "auth_{{uid}}_upd"
 jsonpath "$.data.user.email" == "auth_{{uid}}_upd@test.com"
 jsonpath "$.data.user.bio" == "Updated bio"
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
 [Captures]
-updated_token: jsonpath "$.data.user.token"
+updated_token: jsonpath "$.data.user.bearer"
 
 # Verify username/email update persisted
 GET {{host}}/api/user
@@ -302,6 +304,25 @@ jsonpath "$.data.user.username" == "auth_{{uid}}_upd"
 jsonpath "$.data.user.email" == "auth_{{uid}}_upd@test.com"
 jsonpath "$.data.user.bio" == "Updated bio"
 jsonpath "$.data.user.image" == null
-jsonpath "$.data.user.token" isString
-jsonpath "$.data.user.token" not isEmpty
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
+
+# Refresh token rotation through legacy-compatible endpoint
+POST {{host}}/api/users/refresh
+Cookie: refresh_token={{refresh_token}}
+HTTP 200
+[Asserts]
+jsonpath "$.code" isInteger
+jsonpath "$.message" isString
+jsonpath "$.data" exists
+jsonpath "$.data.user.bearer" isString
+jsonpath "$.data.user.bearer" not isEmpty
+[Captures]
+rotated_token: jsonpath "$.data.user.bearer"
+rotated_refresh_token: header "set-cookie" regex "refresh_token=([^;]+);"
+
+# Logout through legacy-compatible endpoint
+POST {{host}}/api/logout
+Authorization: Bearer {{rotated_token}}
+HTTP 204
 

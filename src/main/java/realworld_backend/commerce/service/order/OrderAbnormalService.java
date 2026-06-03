@@ -1,5 +1,7 @@
 package realworld_backend.commerce.service.order;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import realworld_backend.article.model.UserProfile;
@@ -44,7 +46,7 @@ public class OrderAbnormalService {
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         int claimed = abnormalOrderRepository.updateStatusToReconcilingBySessionId(
                 sessionId,
                 AbnormalOrderStatus.RECONCILING,
@@ -67,10 +69,10 @@ public class OrderAbnormalService {
         }
         if (!"paid".equals(retrieve.getPaymentStatus()) || !"complete".equals(retrieve.getStatus())) {
             retryCandidate.setStatus(AbnormalOrderStatus.UNPAID_CONFIRMED);
-            retryCandidate.setHandledAt(LocalDateTime.now());
-            retryCandidate.setLastRetryAt(LocalDateTime.now());
+            retryCandidate.setHandledAt(UtcTimeMapper.nowUtc());
+            retryCandidate.setLastRetryAt(UtcTimeMapper.nowUtc());
             retryCandidate.setErrorMessage("order status is not paid or complete");
-            retryCandidate.setUpdatedAt(LocalDateTime.now());
+            retryCandidate.setUpdatedAt(UtcTimeMapper.nowUtc());
             abnormalOrderRepository.save(retryCandidate);
             return;
         }
@@ -130,11 +132,11 @@ public class OrderAbnormalService {
         }
 
         retryCandidate.setStatus(AbnormalOrderStatus.UNPAID_CONFIRMED);
-        retryCandidate.setLastRetryAt(LocalDateTime.now());
+        retryCandidate.setLastRetryAt(UtcTimeMapper.nowUtc());
         retryCandidate.setErrorMessage("unknown");
-        retryCandidate.setUpdatedAt(LocalDateTime.now());
+        retryCandidate.setUpdatedAt(UtcTimeMapper.nowUtc());
         retryCandidate.setRetryCount(retryCandidate.getRetryCount() + 1);
-        retryCandidate.setNextRetryAt(LocalDateTime.now()
+        retryCandidate.setNextRetryAt(UtcTimeMapper.nowUtc()
                 .plus(processingStale.multipliedBy(retryCandidate.getRetryCount())));
         abnormalOrderRepository.save(retryCandidate);
     }
@@ -153,8 +155,8 @@ public class OrderAbnormalService {
                     .sessionId(sessionId)
                     .userId(customer)
                     .amount(amount)
-                    .updatedAt(LocalDateTime.now())
-                    .createdAt(LocalDateTime.now())
+                    .updatedAt(UtcTimeMapper.nowUtc())
+                    .createdAt(UtcTimeMapper.nowUtc())
                     .status(OrderStatus.PAID)
                     .build();
             orderService.saveReconcileOrder(order);
@@ -181,10 +183,9 @@ public class OrderAbnormalService {
                 markManualReview(retryCandidate, "reconcile retry_exhausted but order/payment missing");
                 return false;
             }
-
             order.setStatus(OrderStatus.PAID);
             order.setActiveKey(null);
-            order.setUpdatedAt(LocalDateTime.now());
+            order.setUpdatedAt(UtcTimeMapper.nowUtc());
             order.setProductId(productId);
             order.setUserId(customer);
             order.setAmount(amount);
@@ -204,7 +205,7 @@ public class OrderAbnormalService {
 
     private void scheduleRetry(AbnormalOrder retryCandidate, String message) {
         int nextRetryCount = retryCandidate.getRetryCount() + 1;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setRetryCount(nextRetryCount);
         retryCandidate.setLastRetryAt(now);
         retryCandidate.setUpdatedAt(now);
@@ -219,7 +220,7 @@ public class OrderAbnormalService {
     }
 
     private void markManualReview(AbnormalOrder retryCandidate, String message) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setStatus(AbnormalOrderStatus.MANUAL_REVIEW);
         retryCandidate.setUpdatedAt(now);
         retryCandidate.setLastRetryAt(now);
@@ -229,7 +230,7 @@ public class OrderAbnormalService {
     }
 
     private void markFixed(AbnormalOrder retryCandidate, String message) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setStatus(AbnormalOrderStatus.FIXED);
         retryCandidate.setUpdatedAt(now);
         retryCandidate.setLastRetryAt(now);
@@ -279,3 +280,4 @@ public class OrderAbnormalService {
         return resolved;
     }
 }
+

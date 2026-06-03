@@ -1,5 +1,8 @@
 package realworld_backend.commerce.service;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -16,6 +19,7 @@ import realworld_backend.commerce.model.log.AbnormalOrderStatus;
 import realworld_backend.commerce.model.log.AbnormalOrderType;
 import realworld_backend.commerce.repository.AbnormalOrderRepository;
 import realworld_backend.commerce.service.core.PaymentChannelException;
+import realworld_backend.commerce.service.metrics.CommerceMetricsService;
 import realworld_backend.commerce.service.order.OrderAbnormalService;
 import realworld_backend.commerce.service.subscription.SubscriptionAbnormalService;
 
@@ -37,6 +41,7 @@ public class AbnormalOrchestrator {
     private final RedissonClient redissonClient;
     private final OrderAbnormalService orderAbnormalService;
     private final SubscriptionAbnormalService subscriptionAbnormalService;
+    private final CommerceMetricsService commerceMetricsService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void upsertAbnormalOrder(
@@ -50,7 +55,7 @@ public class AbnormalOrchestrator {
             String provider,
             String requestId
     ) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         String errorLine = "[" + now + "] " + errorMessage;
         AbnormalDomainType domainType = resolveDomainType(eventType);
         String normalizedOrderNo = resolveAbnormalOrderNo(orderNo);
@@ -139,7 +144,11 @@ public class AbnormalOrchestrator {
     }
 
     public void retryAbnormalOrder() {
-        LocalDateTime now = LocalDateTime.now();
+        Timer.Sample sample = commerceMetricsService.startTimer();
+        String family = "unknown";
+        String result = "unknown";
+        String provider= "unknown";
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         List<AbnormalOrder> retryCandidates = abnormalOrderRepository.findRetryCandidates(
                 now,
                 now.minus(RECONCILING_LEASE_TIMEOUT),
@@ -155,12 +164,18 @@ public class AbnormalOrchestrator {
                     log.warn("Failed to acquire lock for abnormal tracking {}, another thread is processing", trackingKey);
                     continue;
                 }
+                provider=retryCandidate.getProvider();
+                family=retryCandidate.getDomainType().toString();
                 dispatchByDomain(retryCandidate);
             } catch (PaymentChannelException e) {
+                result = "payment_channel_exception";
                 markRetryFailure(retryCandidate, "provider_retrieve_failed: " + e.getMessage());
             } catch (Exception e) {
+                result = "reconcile_failed";
                 markRetryFailure(retryCandidate, "reconcile_failed: " + e.getMessage());
             } finally {
+                commerceMetricsService.recordWebhookResult(provider, family, result);
+                commerceMetricsService.recordWebhookDuration(sample, provider, family, result);
                 if (lock.isHeldByCurrentThread()) {
                     lock.unlock();
                 }
@@ -200,7 +215,7 @@ public class AbnormalOrchestrator {
 
     private void markRetryFailure(AbnormalOrder retryCandidate, String message) {
         int nextRetryCount = retryCandidate.getRetryCount() + 1;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         retryCandidate.setRetryCount(nextRetryCount);
         retryCandidate.setLastRetryAt(now);
         retryCandidate.setUpdatedAt(now);
@@ -371,3 +386,4 @@ public class AbnormalOrchestrator {
         return AbnormalDomainType.SYSTEM;
     }
 }
+

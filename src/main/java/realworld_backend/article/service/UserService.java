@@ -11,10 +11,10 @@ import realworld_backend.auth.api.request.CurrentAuthUser;
 import realworld_backend.common.dto.responseBody.UserResponse;
 import realworld_backend.common.exception.BizException;
 import realworld_backend.common.exception.ErrorCode;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -32,10 +32,11 @@ public class UserService {
     public UserResponse updateCurrentUser(JsonNode requestJson, HttpServletRequest httpUserRequest, CurrentAuthUser currentUser) {
         //current user
         Long userId = currentUser.userId();
-        UserProfile user = (UserProfile) redisTemplate.opsForValue().get("user:" + userId);
+        UserProfileCacheView cachedUser = (UserProfileCacheView) redisTemplate.opsForValue().get(UserProfileCacheView.key(userId));
+        UserProfile user = cachedUser == null ? null : cachedUser.toEntity();
         if (user == null) {
-            user = userProfileRepository.findById(userId).orElseThrow(() -> new BizException(ErrorCode.TOKEN_INVALID));
-            redisTemplate.opsForValue().set("user:" + userId, user, Duration.ofHours(1));
+            user = userProfileRepository.findByUserAuthId(userId).orElseThrow(() -> new BizException(ErrorCode.TOKEN_INVALID));
+            redisTemplate.opsForValue().set(UserProfileCacheView.key(userId), UserProfileCacheView.from(user), Duration.ofHours(1));
         }
         JsonNode userNode = requestJson.get("user");
         if (userNode == null || userNode.isNull()) {
@@ -75,22 +76,50 @@ public class UserService {
         userProfileRepository.save(user);
 
         // update cache
-        redisTemplate.opsForValue().set("user:" + user.getId(), user, Duration.ofHours(1));
+        redisTemplate.opsForValue().set(UserProfileCacheView.key(user.getId()), UserProfileCacheView.from(user), Duration.ofHours(1));
 
         UserResponse response = new UserResponse(user);
 
         //token from header
         String header = httpUserRequest.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            response.setBearer(header.substring(7));
+            String token = header.substring(7);
+            response.setBearer(token);
         }
 
         return response;
     }
 
+    public UserResponse getCurrentUser(HttpServletRequest httpUserRequest, CurrentAuthUser currentUser) {
+        Long userId = currentUser.userId();
+        UserProfileCacheView cachedUser = (UserProfileCacheView) redisTemplate.opsForValue().get(UserProfileCacheView.key(userId));
+        UserProfile user = cachedUser == null ? null : cachedUser.toEntity();
+        if (user == null) {
+            user = userProfileRepository.findByUserAuthId(userId).orElseThrow(() -> new BizException(ErrorCode.TOKEN_INVALID));
+            redisTemplate.opsForValue().set(UserProfileCacheView.key(userId), UserProfileCacheView.from(user), Duration.ofHours(1));
+        }
+
+        UserResponse response = new UserResponse(user);
+        String header = httpUserRequest.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            response.setBearer(token);
+        }
+        return response;
+    }
+
+    public Optional<UserProfile> findByUsername(String username) {
+        return userProfileRepository.findByUsername(username);
+    }
+
+    public Optional<UserProfile> findByEmail(String email) {
+        return userProfileRepository.findByEmail(email);
+    }
+
 
     public Optional<UserProfile> findByUserId(Long userId) {
-        return userProfileRepository.findById(userId);
+        return userProfileRepository.findByUserAuthId(userId);
     }
+
 }
 

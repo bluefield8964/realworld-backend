@@ -30,7 +30,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-token: jsonpath "$.data.user.token"
+token: jsonpath "$.data.user.bearer"
 
 # Follow unknown user (authed)
 POST {{host}}/api/profiles/unknown-user-{{uid}}/follow

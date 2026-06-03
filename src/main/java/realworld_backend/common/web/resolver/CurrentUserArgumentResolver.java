@@ -5,6 +5,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -18,6 +19,7 @@ import realworld_backend.common.exception.TokenInvalidException;
  * Resolves {@link CurrentAuthUser} arguments from the active security context.
  */
 @Component
+@Slf4j
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
 
 
@@ -42,8 +44,10 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
             // Pull the minimum user context needed by controllers from the JWT.
             if (authentication.getPrincipal() instanceof Jwt jwt) {
-                Long userId = jwt.getClaim("userId");
+                Object userIdClaim = jwt.getClaim("id");
+                Long userId = userIdClaim instanceof Number number ? number.longValue() : null;
                 String sessionId = jwt.getClaim("sessionId");
+                log.info("Resolved CurrentAuthUser from JWT: userId={}, sessionId={}, claims={}", userId, sessionId, jwt.getClaims().keySet());
 
                 if (userId == null || sessionId == null) {
                     if (required) {

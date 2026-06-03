@@ -26,6 +26,7 @@ public class PasswordLoginUseCaseImpl implements PasswordLoginUseCase {
     private final AuthRefreshTokenService authRefreshTokenService;
 
     @Override
+    @Transactional
     public LoginResult login(PasswordLoginCommand command) {
         try {
             //check the encounter user info
@@ -127,6 +128,7 @@ public class PasswordLoginUseCaseImpl implements PasswordLoginUseCase {
     }
 
     @Override
+    @Transactional
     public TokenPair refreshTokenRotation(String refreshToken, String requestId, String Agent, String ip) {
         try {
             //find match refreshToken

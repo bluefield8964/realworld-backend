@@ -1,5 +1,7 @@
 package realworld_backend.commerce.service.subscription;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -59,12 +61,15 @@ public class SubscriptionService {
             }
             // Reuse active pending order; otherwise create a new one.
             customerSubscription = createSubscription(userId, provider, planCode, activeKey);
-            if (customerSubscription.isActiveNow(LocalDateTime.now())) {
+            if (customerSubscription.isActiveNow(UtcTimeMapper.nowUtc())) {
                 throw new BizException(ErrorCode.SUBSCRIPTION_ALREADY_CREATED);
             }
             // Keep same checkout URL for active pending order.
             if (customerSubscription.getStatus() == SubscriptionStatus.PENDING) {
                 return customerSubscription.getSubscriptionUrl();
+            }
+            if (customerSubscription.getStatus() == SubscriptionStatus.PAYING) {
+                throw new BizException(ErrorCode.SUBSCRIPTION_ALREADY_CREATED);
             }
 
             subscriptionHistoryService.recordInit(customerSubscription);
@@ -85,7 +90,7 @@ public class SubscriptionService {
 
     private String savePendingSubscription(CustomerSubscription customerSubscription, CheckoutSessionData session) {
         String url = session.getUrl();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         customerSubscription.setStatus(SubscriptionStatus.PENDING);
         customerSubscription.setSubscriptionUrl(url);
         customerSubscription.setUpdatedAt(now);
@@ -100,7 +105,8 @@ public class SubscriptionService {
 
     public void saveFailSubscription(CustomerSubscription customerSubscription) {
         customerSubscription.setStatus(SubscriptionStatus.INITIAL_FAIL);
-        customerSubscription.setUpdatedAt(LocalDateTime.now());
+        customerSubscription.setActiveKey(null);
+        customerSubscription.setUpdatedAt(UtcTimeMapper.nowUtc());
         customerSubscriptionRepository.save(customerSubscription);
     }
 
@@ -121,11 +127,13 @@ public class SubscriptionService {
         String subscriptionNo = UUID.randomUUID().toString();
         // Business-level idempotency: one active order per user+planCode key.
         Optional<CustomerSubscription> existingCustomerSubscription = customerSubscriptionRepository.findByActiveKey(activeKey);
-        if (existingCustomerSubscription.isPresent() && existingCustomerSubscription.get().getStatus() == SubscriptionStatus.PENDING) {
+        if (existingCustomerSubscription.isPresent()
+                && (existingCustomerSubscription.get().getStatus() == SubscriptionStatus.PENDING
+                || existingCustomerSubscription.get().getStatus() == SubscriptionStatus.PAYING)) {
             return existingCustomerSubscription.get();
         }
         if (existingCustomerSubscription.isPresent()
-                && existingCustomerSubscription.get().isActiveNow(LocalDateTime.now())) {
+                && existingCustomerSubscription.get().isActiveNow(UtcTimeMapper.nowUtc())) {
             return existingCustomerSubscription.get();
         }
         // DB unique key is the last race guard across concurrent workers.
@@ -134,7 +142,7 @@ public class SubscriptionService {
             throw new BizException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND);
         }
         SubscriptionPlan subscriptionPlan = subscriptionPlanMapper.get();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         CustomerSubscription customerSubscription = CustomerSubscription.builder().createdAt(now)
                 .activeKey(activeKey)
                 .subscriptionNo(subscriptionNo)
@@ -173,12 +181,15 @@ public class SubscriptionService {
                 customerSubscription.getCurrentPeriodEnd(),
                 customerSubscription.getCancelAtPeriodEnd(),
                 customerSubscription.getCanceledAt(),
+                customerSubscription.getLastCheckoutEventCreatedAt(),
+                customerSubscription.getLastLifecycleEventCreatedAt(),
                 customerSubscription.getCreatedAt(),
                 customerSubscription.getUpdatedAt()
         );
     }
 
 }
+
 
 
 

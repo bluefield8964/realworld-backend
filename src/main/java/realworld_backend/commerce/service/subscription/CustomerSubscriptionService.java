@@ -18,11 +18,12 @@ public class CustomerSubscriptionService {
     private final CustomerSubscriptionRepository customerSubscriptionRepository;
 
    public int  updateFromProviderIfStatusChanged( String subscriptionNo,
-                                                   SubscriptionStatus fromStatus,
+                                                  java.util.Collection<SubscriptionStatus> fromStatus,
                                                  SubscriptionStatus toStatus,
                                                   Instant providerPeriodStart,
                                                   Instant providerPeriodEnd,
                                                  Boolean cancelAtPeriodEnd,
+                                                 boolean clearActiveKey,
                                                   Instant now ){
        return customerSubscriptionRepository.updateFromProviderIfStatusChanged
                (subscriptionNo,
@@ -31,6 +32,7 @@ public class CustomerSubscriptionService {
                        ProviderTimeMapper.toUtcLocalDateTime(providerPeriodStart),
                        ProviderTimeMapper.toUtcLocalDateTime(providerPeriodEnd),
                        cancelAtPeriodEnd,
+                       clearActiveKey,
                        ProviderTimeMapper.toUtcLocalDateTime(now));
 
    }
@@ -48,29 +50,28 @@ public class CustomerSubscriptionService {
         return providerSubscription;
     }
 
+    public List<CustomerSubscription> findByUserIdOrderByCurrentPeriodEndDesc(Long userId) {
+        return customerSubscriptionRepository.findByUser_IdOrderByCurrentPeriodEndDesc(userId);
+    }
+
     public CustomerSubscription save(CustomerSubscription customerSubscription) {
         return customerSubscriptionRepository.save(customerSubscription);
     }
 
-    public int updateStatusToPastDue(String subscriptionNo, Instant now) {
-        LocalDateTime nowUtc = ProviderTimeMapper.toUtcLocalDateTime(now);
-        return customerSubscriptionRepository.updateStatusToPastDue(
+    public int markCheckoutEventObservedIfNewer(String subscriptionNo, Instant eventCreatedAt, Instant now) {
+        return customerSubscriptionRepository.markCheckoutEventObservedIfNewer(
                 subscriptionNo,
-                SubscriptionStatus.PAST_DUE,
-                List.of(SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING),
-                nowUtc
+                ProviderTimeMapper.toUtcLocalDateTime(eventCreatedAt),
+                ProviderTimeMapper.toUtcLocalDateTime(now)
         );
     }
 
-    public int updateStatusToActiveFromRecoverable(String subscriptionNo, Instant now) {
-        LocalDateTime nowUtc = ProviderTimeMapper.toUtcLocalDateTime(now);
-        return customerSubscriptionRepository.updateStatusToActiveFromRecoverable(
+    public int markLifecycleEventObservedIfNewer(String subscriptionNo, Instant eventCreatedAt, Instant now) {
+        return customerSubscriptionRepository.markLifecycleEventObservedIfNewer(
                 subscriptionNo,
-                SubscriptionStatus.ACTIVE,
-                List.of(SubscriptionStatus.PENDING, SubscriptionStatus.INITIAL_FAIL, SubscriptionStatus.PAST_DUE),
-                nowUtc
+                ProviderTimeMapper.toUtcLocalDateTime(eventCreatedAt),
+                ProviderTimeMapper.toUtcLocalDateTime(now)
         );
     }
 
 }
-

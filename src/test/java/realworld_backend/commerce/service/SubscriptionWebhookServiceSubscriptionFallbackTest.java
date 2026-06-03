@@ -13,10 +13,17 @@ import realworld_backend.commerce.event.BusinessEventType;
 import realworld_backend.commerce.model.core.ProviderRawEvent;
 import realworld_backend.commerce.model.subscription.CustomerSubscription;
 import realworld_backend.commerce.model.subscription.SubscriptionWebhookEvent;
-import realworld_backend.commerce.service.core.WebhookContext;
-import realworld_backend.commerce.service.impl.parser.WebhookObjectParserRouter;
+import realworld_backend.commerce.service.entitlement.EntitlementProjector;
+import realworld_backend.commerce.service.webhook.PaymentFailureEscalationService;
+import realworld_backend.commerce.service.webhook.core.WebhookContext;
+import realworld_backend.commerce.service.webhook.parser.WebhookObjectParserRouter;
+import realworld_backend.commerce.service.statemachine.SubscriptionWebhookStateMachine;
 import realworld_backend.commerce.service.subscription.CustomerSubscriptionService;
+import realworld_backend.commerce.service.subscription.invoice.SubscriptionInvoiceWebhookService;
+import realworld_backend.commerce.service.subscription.lifecycle.SubscriptionLifecycleWebhookService;
+import realworld_backend.commerce.service.subscription.snapshot.SubscriptionSnapshotMergeService;
 import realworld_backend.commerce.service.subscription.SubscriptionHistoryService;
+import realworld_backend.commerce.service.subscription.lifecycle.SubscriptionSnapshotSyncService;
 import realworld_backend.commerce.service.subscription.SubscriptionWebhookService;
 
 import java.util.Optional;
@@ -51,20 +58,59 @@ class SubscriptionWebhookServiceSubscriptionFallbackTest {
     @Mock
     private InvoiceService invoiceService;
     @Mock
+    private PaymentFailureEscalationService paymentFailureEscalationService;
+    @Mock
+    private EntitlementProjector entitlementProjector;
+    private SubscriptionSnapshotMergeService subscriptionSnapshotMergeService;
+    @Mock
     private RLock lock;
 
     private SubscriptionWebhookService subscriptionWebhookService;
+    private SubscriptionWebhookStateMachine subscriptionWebhookStateMachine;
+    private SubscriptionLifecycleWebhookService subscriptionLifecycleWebhookService;
+    private SubscriptionInvoiceWebhookService subscriptionInvoiceWebhookService;
+    private SubscriptionSnapshotSyncService subscriptionSnapshotSyncService;
 
     @BeforeEach
     void setUp() {
-        subscriptionWebhookService = new SubscriptionWebhookService(
+        subscriptionWebhookStateMachine = new SubscriptionWebhookStateMachine();
+        subscriptionSnapshotMergeService = new SubscriptionSnapshotMergeService();
+        subscriptionLifecycleWebhookService = new SubscriptionLifecycleWebhookService(
                 webhookObjectParserRouter,
                 redissonClient,
                 subscriptionHistoryService,
                 abnormalOrchestrator,
                 redisTemplate,
                 customerSubscriptionService,
-                invoiceService
+                paymentFailureEscalationService,
+                subscriptionWebhookStateMachine,
+                subscriptionSnapshotMergeService,
+                entitlementProjector
+        );
+        subscriptionInvoiceWebhookService = new SubscriptionInvoiceWebhookService(
+                webhookObjectParserRouter,
+                redissonClient,
+                abnormalOrchestrator,
+                redisTemplate,
+                customerSubscriptionService,
+                invoiceService,
+                paymentFailureEscalationService,
+                subscriptionWebhookStateMachine,
+                subscriptionSnapshotMergeService,
+                entitlementProjector
+        );
+        subscriptionSnapshotSyncService = new SubscriptionSnapshotSyncService(
+                webhookObjectParserRouter,
+                redissonClient,
+                redisTemplate,
+                customerSubscriptionService,
+                abnormalOrchestrator,
+                subscriptionSnapshotMergeService
+        );
+        subscriptionWebhookService = new SubscriptionWebhookService(
+                subscriptionLifecycleWebhookService,
+                subscriptionInvoiceWebhookService,
+                subscriptionSnapshotSyncService
         );
 
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -160,4 +206,3 @@ class SubscriptionWebhookServiceSubscriptionFallbackTest {
                 .build();
     }
 }
-

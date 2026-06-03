@@ -1,5 +1,7 @@
 package realworld_backend.article.service;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -48,16 +50,15 @@ public class CommentService {
 
         Article article = articleReposity.findBySlug(slug)
                 .orElseThrow(() -> new BizException(ErrorCode.WITHOUT_ARTICLE));
+        realworld_backend.article.model.UserProfile currentProfile = userProfileRepository.findByUserAuthId(currentUser.userId())
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         Comment comment = new Comment();
         comment.setBody(request.getComment().getBody());
-        comment.setUserProfile(
-                userProfileRepository.findById(currentUser.userId())
-                        .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND))
-        );
+        comment.setUserProfile(currentProfile);
         comment.setArticle(article);
-        comment.setCreatedAt(LocalDateTime.now());
-        comment.setUpdatedAt(LocalDateTime.now());
+        comment.setCreatedAt(UtcTimeMapper.nowUtc());
+        comment.setUpdatedAt(UtcTimeMapper.nowUtc());
 
         commentRepository.save(comment);
 
@@ -77,9 +78,12 @@ public class CommentService {
         Set<Long> followingIds = Collections.emptySet();
 
         if (currentUser != null) {
+            realworld_backend.article.model.UserProfile currentProfile = userProfileRepository.findByUserAuthId(currentUser.userId()).orElse(null);
+            if (currentProfile != null) {
             followingIds = new HashSet<>(
-                    followRepository.findFollowingIdsByFollowerId(currentUser.userId())
+                    followRepository.findFollowingIdsByFollowerId(currentProfile.getId())
             );
+            }
         }
 
         Set<Long> finalFollowingIds = followingIds;
@@ -108,6 +112,8 @@ public class CommentService {
         }
         Article article = articleReposity.findBySlug(slug)
                 .orElseThrow(() -> new BizException(ErrorCode.WITHOUT_ARTICLE));
+        realworld_backend.article.model.UserProfile currentProfile = userProfileRepository.findByUserAuthId(currentUser.userId())
+                .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BizException(ErrorCode.ARTICLE_NOT_FOUND));
@@ -115,12 +121,13 @@ public class CommentService {
         if (!comment.getArticle().getId().equals(article.getId())) {
             throw new BizException(ErrorCode.ARTICLE_NOT_FOUND);
         }
-        if (!comment.getUserProfile().getId().equals(currentUser.userId())) {
+        if (!comment.getUserProfile().getId().equals(currentProfile.getId())) {
             throw new BizException(ErrorCode.FORBIDDEN);
         }
         commentRepository.delete(comment);
     }
 }
+
 
 
 

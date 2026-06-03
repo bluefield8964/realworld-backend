@@ -37,8 +37,19 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 UPDATE Payment p
 SET p.status = PaymentStatus.SUCCESS
 WHERE p.sessionId = :sessionId
-AND p.status <> PaymentStatus.SUCCESS
+AND p.status in :allowedStatuses
 """)
-    int markPaidIfNotPaid(@Param("sessionId")String sessionId);
+    int markPaidIfNotPaid(@Param("sessionId")String sessionId,
+                          @Param("allowedStatuses") java.util.List<PaymentStatus> allowedStatuses);
+
+    @Modifying
+    @Query("""
+    update Payment p
+       set p.status = :toStatus
+     where p.id = :id
+       and p.status = :fromStatus
+""")
+    int markFromStatusToStatus(Long id, PaymentStatus fromStatus, PaymentStatus toStatus);
+
 }
 

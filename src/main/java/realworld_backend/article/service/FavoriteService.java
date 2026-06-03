@@ -1,5 +1,7 @@
 package realworld_backend.article.service;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import realworld_backend.article.model.UserProfile;
 import realworld_backend.auth.api.request.CurrentAuthUser;
 import realworld_backend.article.repository.ArticleRepository;
 import realworld_backend.article.repository.FavoriteRepository;
+import realworld_backend.article.repository.UserProfileRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -23,6 +26,7 @@ public class FavoriteService {
 
     private final FavoriteRepository favoriteRepository;
     private final ArticleRepository articleRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Transactional
     public void favoriteArticle(UserProfile user, Article article) {
@@ -34,7 +38,7 @@ public class FavoriteService {
         Favorite favorite = new Favorite();
         favorite.setUser(user);
         favorite.setArticle(article);
-        favorite.setCreatedAt(LocalDateTime.now());
+        favorite.setCreatedAt(UtcTimeMapper.nowUtc());
 
         favoriteRepository.save(favorite);
 
@@ -61,10 +65,12 @@ public class FavoriteService {
                 .toList();
 
 
-        if (user == null) return Collections.emptySet();
+        if (user == null || user.userId() == null) return Collections.emptySet();
+        UserProfile userProfile = userProfileRepository.findByUserAuthId(user.userId()).orElse(null);
+        if (userProfile == null) return Collections.emptySet();
 
         List<Long> ids = favoriteRepository
-                .findArticleIdsByUserIdAndArticleIds(user.userId(), articleIds);
+                .findArticleIdsByUserIdAndArticleIds(userProfile.getId(), articleIds);
 
 
         favoritedIds=new HashSet<>(ids);
@@ -76,7 +82,11 @@ public class FavoriteService {
         if (user == null || user.userId() == null) {
             return false;
         }
-        return favoriteRepository.existsByUserIdAndArticleId(user.userId(), article.getId());
+        UserProfile userProfile = userProfileRepository.findByUserAuthId(user.userId()).orElse(null);
+        if (userProfile == null) {
+            return false;
+        }
+        return favoriteRepository.existsByUserIdAndArticleId(userProfile.getId(), article.getId());
     }
 
     public boolean isFavoritedByUser(Long userId, Long articleId) {
@@ -87,4 +97,5 @@ public class FavoriteService {
     }
 
 }
+
 

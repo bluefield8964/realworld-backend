@@ -1,4 +1,4 @@
-﻿# Register main user
+# Register main user
 POST {{host}}/api/users
 {
   "user": {
@@ -9,7 +9,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-main_token: jsonpath "$.data.user.token"
+main_token: jsonpath "$.data.user.bearer"
 
 # Register celeb user
 POST {{host}}/api/users
@@ -22,7 +22,7 @@ POST {{host}}/api/users
 }
 HTTP 201
 [Captures]
-celeb_token: jsonpath "$.data.user.token"
+celeb_token: jsonpath "$.data.user.bearer"
 
 # Feed for new user returns empty
 GET {{host}}/api/articles/feed

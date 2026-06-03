@@ -18,6 +18,7 @@ import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import realworld_backend.auth.domain.model.UserAuthProfile;
 import realworld_backend.commerce.model.Order;
@@ -52,6 +53,14 @@ public class StripePaymentChannel implements PaymentChannel {
 
     private final PaymentErrorLogService paymentErrorLogService;
     private final PlanProviderMappingService planProviderMappingService;
+    @Value("${stripe.checkout.order.success-url}")
+    private String orderSuccessUrl;
+    @Value("${stripe.checkout.order.cancel-url}")
+    private String orderCancelUrl;
+    @Value("${stripe.checkout.subscription.success-url}")
+    private String subscriptionSuccessUrl;
+    @Value("${stripe.checkout.subscription.cancel-url}")
+    private String subscriptionCancelUrl;
     // Stripe Billing hard declines: automatic retries should not execute unless payment method changes.
     private static final Set<String> HARD_DECLINE_CODES = Set.of(
             "incorrect_number",
@@ -83,8 +92,8 @@ public class StripePaymentChannel implements PaymentChannel {
             SessionCreateParams params =
                     SessionCreateParams.builder()
                             .setMode(SessionCreateParams.Mode.PAYMENT)
-                            .setSuccessUrl("http://localhost:3000/success")
-                            .setCancelUrl("http://localhost:3000/cancel")
+                            .setSuccessUrl(orderSuccessUrl)
+                            .setCancelUrl(orderCancelUrl)
                             .putMetadata("orderNo", order.getOrderNo())
                             .putMetadata("userId", order.getUserId().toString())
                             .putMetadata("product", String.valueOf(order.getProductId()))
@@ -129,8 +138,8 @@ public class StripePaymentChannel implements PaymentChannel {
             SessionCreateParams params = SessionCreateParams.builder()
                     // Core mode and redirect URLs.
                     .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                    .setSuccessUrl("https://yoursite.com/subscription/success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl("https://yoursite.com/plans")
+                    .setSuccessUrl(subscriptionSuccessUrl)
+                    .setCancelUrl(subscriptionCancelUrl)
                     // Recurring price reference from provider mapping.
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()

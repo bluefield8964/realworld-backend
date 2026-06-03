@@ -1,5 +1,7 @@
 package realworld_backend.auth.infrastructure.stub;
 
+import realworld_backend.common.time.UtcTimeMapper;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +30,7 @@ public class InMemorySessionService implements SessionService {
     @Override
     public AuthSession createSession(UserAuthProfile user, LoginContext loginContext, RiskDecision riskDecision) {
         Optional<AuthSession> authSessionByIdAndDeviceId = authSessionRepository.findByUserIdAndDeviceId(loginContext.getUserId(), loginContext.getDeviceId());
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = UtcTimeMapper.nowUtc();
         AuthSession  authSession = AuthSession.builder()
                 .sessionId(UUID.randomUUID().toString())
                 .userId(user.getId())
@@ -94,7 +96,7 @@ public class InMemorySessionService implements SessionService {
                 .findBySessionIdAndStatusAndRevokedAtIsNull(sessionId, SessionStatus.ACTIVE)
                 .orElseThrow(() ->new AuthException(ErrorCode.SESSION_NOT_FOUND));
 
-        if (session.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (session.getExpiresAt().isBefore(UtcTimeMapper.nowUtc())) {
             throw new AuthException(ErrorCode.SESSION_EXPIRED);
         }
         return session;
@@ -102,3 +104,4 @@ public class InMemorySessionService implements SessionService {
 
 
 }
+
