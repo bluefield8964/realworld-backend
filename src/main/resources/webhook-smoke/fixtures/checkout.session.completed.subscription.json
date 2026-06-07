@@ -1,0 +1,60 @@
+{
+  "id": "evt_01JXSMOKECHK0001",
+  "object": "event",
+  "api_version": "2024-10-28.acacia",
+  "created": 1750000000,
+  "data": {
+    "object": {
+      "id": "cs_test_sub_0001",
+      "object": "checkout.session",
+      "status": "complete",
+      "payment_status": "paid",
+      "mode": "subscription",
+      "url": "https://checkout.stripe.com/c/pay/cs_test_sub_0001",
+      "amount_total": 9900,
+      "currency": "usd",
+      "customer": "cus_test_0001",
+      "customer_email": "probe123456@test.com",
+      "customer_details": {
+        "email": "probe123456@test.com",
+        "name": "probe123456",
+        "phone": null
+      },
+      "client_reference_id": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+      "metadata": {
+        "userId": "33",
+        "planCode": "CREATOR_URLT_MONTHLY",
+        "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "product": "Monthly subscription plan used for local URLT testing."
+      },
+      "payment_intent": null,
+      "subscription": "sub_stripe_0001",
+      "setup_intent": null,
+      "subscription_data": {
+        "trial_period_days": 7,
+        "metadata": {
+          "subscription_type": "Creator URLT Monthly",
+          "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+          "userId": "33",
+          "planCode": "CREATOR_URLT_MONTHLY",
+          "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+          "product": "Monthly subscription plan used for local URLT testing."
+        }
+      },
+      "created": 1750000000,
+      "expires_at": 1750003600,
+      "success_url": "http://localhost:3000/subscription/success?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://localhost:3000/plans",
+      "livemode": false
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": {
+    "id": "req_smoke_checkout_sub_0001",
+    "idempotency_key": null
+  },
+  "type": "checkout.session.completed"
+}
+

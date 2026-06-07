@@ -9,6 +9,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import realworld_backend.commerce.model.exception.WebhookDuplicateIgnoredException;
 import realworld_backend.commerce.event.BusinessEventType;
 import realworld_backend.commerce.model.PaymentStatus;
 import realworld_backend.commerce.model.invoice.InvoiceWebhookEvent;
@@ -69,7 +70,7 @@ public class SubscriptionInvoiceWebhookService {
 
         InvoiceWebhookEvent.InvoiceObject invoiceObject = event.getObject();
         if (invoiceObject == null) {
-            throw new BizException(ErrorCode.INVOICE_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         if (!event.isSubscriptionInvoice() || !event.isPaymentFailed()) {
@@ -78,7 +79,7 @@ public class SubscriptionInvoiceWebhookService {
 
         String invoiceId = resolveInvoiceId(invoiceObject);
         if (invoiceId == null || invoiceId.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String businessOrderNo = resolveInvoiceBusinessOrderNo(invoiceObject);
@@ -99,7 +100,7 @@ public class SubscriptionInvoiceWebhookService {
             businessOrderNo = invoiceSubscription.getSubscriptionNo();
 
         } else if (businessOrderNo == null || businessOrderNo.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         ctx.setTrackingId(businessOrderNo);
@@ -109,16 +110,16 @@ public class SubscriptionInvoiceWebhookService {
         RLock lock = redissonClient.getLock("invoice:lock:" + invoiceId);
         try {
             Object idempotencyLock = redisTemplate.opsForValue().get(idempotentKey);
-
+            //long lock
             if (idempotencyLock != null) {
                 log.info("handleInvoicePaymentFailed: invoice already processed after lock, eventId={}, finish request", eventId);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
-
+            //short lock
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("handleInvoicePaymentFailed: failed to acquire lock for invoice {}, finish request", invoiceId);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean b = invoiceService.upsertInvoiceByEvent(event, businessOrderNo, PaymentStatus.FAILED);
@@ -170,20 +171,20 @@ public class SubscriptionInvoiceWebhookService {
         String idempotentKey = "handleInvoice:event:" + eventId;
         InvoiceWebhookEvent.InvoiceObject invoiceObject = event.getObject();
         if (invoiceObject == null) {
-            throw new BizException(ErrorCode.INVOICE_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         if (!event.isSubscriptionInvoice() || !event.isPaymentSuccessful()) {
             throw new BizException(ErrorCode.STATEMENT_DOES_NOT_MATCH_EVENT_TYPE);
         }
         String invoiceId = resolveInvoiceId(invoiceObject);
         if (invoiceId == null || invoiceId.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String businessOrderNo = resolveInvoiceBusinessOrderNo(invoiceObject);
         if (businessOrderNo == null || businessOrderNo.isBlank()) {
             if (ctx.getAttempts() < 5) {
-                throw new BizException(ErrorCode.JSON_ERROR);
+                throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
             }
             Optional<CustomerSubscription> customerSubscription = Optional.empty();
 
@@ -205,7 +206,7 @@ public class SubscriptionInvoiceWebhookService {
                 );
                 ctx.setAbnormalAlreadyUpserted(true);
                 redisTemplate.opsForValue().setIfAbsent(idempotentKey, "1", Duration.ofHours(24));
-                throw new BizException(ErrorCode.CUSTOMER_SUBSCRIPTION_NOT_FOUND);
+                throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
             }
             businessOrderNo = customerSubscription.get().getSubscriptionNo();
         }
@@ -219,12 +220,12 @@ public class SubscriptionInvoiceWebhookService {
             Object idempotencyLock = redisTemplate.opsForValue().get(idempotentKey);
             if (idempotencyLock != null) {
                 log.info("handleInvoicePaymentSucceeded: invoice already processed after lock, eventId={}, finish request", eventId);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("handleInvoicePaymentSucceeded: Failed to acquire lock for invoice {}, finish request", invoiceId);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean upserted = invoiceService.upsertInvoiceByEvent(event, businessOrderNo, PaymentStatus.SUCCESS);
@@ -276,7 +277,7 @@ public class SubscriptionInvoiceWebhookService {
         String idempotentKey = "handleInvoice:event:" + eventId;
         InvoiceWebhookEvent.InvoiceObject invoiceObject = event == null ? null : event.getObject();
         if (invoiceObject == null) {
-            throw new BizException(ErrorCode.INVOICE_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         if (!event.isSubscriptionInvoice()) {
             throw new BizException(ErrorCode.STATEMENT_DOES_NOT_MATCH_EVENT_TYPE);
@@ -284,7 +285,7 @@ public class SubscriptionInvoiceWebhookService {
 
         String invoiceId = resolveInvoiceId(invoiceObject);
         if (!hasText(invoiceId)) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String businessOrderNo = resolveInvoiceBusinessOrderNo(invoiceObject);
@@ -298,12 +299,12 @@ public class SubscriptionInvoiceWebhookService {
         ctx.setTrackingId(businessOrderNo);
         if (!hasText(businessOrderNo)) {
             upsertSubscriptionMissingAbnormalOrder(null, invoiceId, eventId, idempotentKey, ctx);
-            throw new BizException(ErrorCode.CUSTOMER_SUBSCRIPTION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         if (customerSubscriptionService.findBySubscriptionNo(businessOrderNo).isEmpty()) {
             upsertSubscriptionMissingAbnormalOrder(businessOrderNo, invoiceId, eventId, idempotentKey, ctx);
-            throw new BizException(ErrorCode.CUSTOMER_SUBSCRIPTION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         RLock lock = redissonClient.getLock("invoice:lock:" + invoiceId);
@@ -311,13 +312,13 @@ public class SubscriptionInvoiceWebhookService {
             Object idempotencyLock = redisTemplate.opsForValue().get(idempotentKey);
             if (idempotencyLock != null) {
                 log.info("handleInvoicePaymentActionRequired: invoice already processed after lock, eventId={}, finish request", eventId);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("handleInvoicePaymentActionRequired: Failed to acquire lock for invoice {}, finish request", invoiceId);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean upserted = invoiceService.upsertInvoiceByEvent(event, businessOrderNo, PaymentStatus.PROCESSING);
@@ -524,4 +525,3 @@ public class SubscriptionInvoiceWebhookService {
         return value != null && !value.isBlank();
     }
 }
-

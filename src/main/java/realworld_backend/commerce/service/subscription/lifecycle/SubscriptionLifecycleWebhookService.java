@@ -9,6 +9,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import realworld_backend.commerce.model.exception.WebhookDuplicateIgnoredException;
 import realworld_backend.commerce.event.BusinessEventType;
 import realworld_backend.commerce.model.log.AbnormalOrderType;
 import realworld_backend.commerce.model.subscription.CustomerSubscription;
@@ -69,7 +70,7 @@ public class SubscriptionLifecycleWebhookService {
         String eventId = ctx.getEventId();
         String idempotentKey = "handleSubscription:event:" + eventId;
         if (!hasText(resolved.subscriptionNo())) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         executeLifecycleTransition(
                 ctx,
@@ -105,7 +106,7 @@ public class SubscriptionLifecycleWebhookService {
         String product = metadata == null ? null : metadata.get("product");
         if (!hasText(subscriptionNo)) {
             log.error("subscription mapping missing: subscriptionNo, providerSubscriptionId={}", providerSubscriptionId);
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         if (userId == null || userId.isBlank()) {
@@ -160,7 +161,7 @@ public class SubscriptionLifecycleWebhookService {
         SubscriptionWebhookEvent.SubscriptionObject subscriptionObject = resolved.subscriptionObject();
         String subscriptionNo = resolved.subscriptionNo();
         if (!hasText(subscriptionNo)) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         SubscriptionStatus targetStatus = mapProviderStatus(subscriptionObject.getStatus());
         executeLifecycleTransition(
@@ -182,7 +183,7 @@ public class SubscriptionLifecycleWebhookService {
         ResolvedLifecycleEvent resolved = parseLifecycleEventAndBindContext(ctx);
         if (!hasText(resolved.subscriptionNo())) {
             log.error("customer.subscription.paused missing subscriptionNo, providerSubscriptionId={}", resolved.providerSubscriptionId());
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         executeLifecycleTransition(
@@ -204,7 +205,7 @@ public class SubscriptionLifecycleWebhookService {
         ResolvedLifecycleEvent resolved = parseLifecycleEventAndBindContext(ctx);
         if (!hasText(resolved.subscriptionNo())) {
             log.error("customer.subscription.resumed missing subscriptionNo, providerSubscriptionId={}", resolved.providerSubscriptionId());
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         executeLifecycleTransition(
@@ -235,7 +236,7 @@ public class SubscriptionLifecycleWebhookService {
         String eventId = ctx.getEventId();
         String subscriptionNo = ctx.getTrackingId();
         if (subscriptionNo == null || subscriptionNo.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         String providerSubscriptionId = subscriptionObject.getId();
         Instant providerPeriodStart = subscriptionObject.currentPeriodStartInstant();
@@ -249,13 +250,13 @@ public class SubscriptionLifecycleWebhookService {
 
             if (idempotencyLock != null) {
                 log.info("{}: subscription already processed after lock, eventId={}, finish request", capabilityName, eventId);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("{}: failed to acquire lock for subscription {}, finish request", capabilityName, subscriptionNo);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             CustomerSubscription currentSubscription = requireLocalSubscription(

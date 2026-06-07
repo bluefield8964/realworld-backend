@@ -322,6 +322,63 @@ WHERE sp.plan_code = 'CREATOR_PRO_MONTHLY'
       AND ppm.provider = 'STRIPE'
   );
 
+INSERT INTO subscription_plans (
+  plan_code,
+  name,
+  duration,
+  description,
+  status,
+  price,
+  currency,
+  billing_interval,
+  created_at,
+  updated_at,
+  feature_bundle_id
+)
+SELECT
+  'CREATOR_URLT_MONTHLY',
+  'Creator URLT Monthly',
+  2592000,
+  'Monthly subscription plan used for local URLT testing.',
+  'ACTIVE',
+  99.00,
+  'usd',
+  'MONTHLY',
+  UTC_TIMESTAMP(),
+  UTC_TIMESTAMP(),
+  fb.id
+FROM feature_bundles fb
+WHERE fb.bundle_code = 'CREATOR_PRO_BUNDLE'
+  AND NOT EXISTS (
+    SELECT 1 FROM subscription_plans sp WHERE sp.plan_code = 'CREATOR_URLT_MONTHLY'
+  );
+
+INSERT INTO plan_provider_mappings (
+  plan_id,
+  provider,
+  provider_price_id,
+  provider_product_id,
+  active,
+  created_at,
+  updated_at
+)
+SELECT
+  sp.id,
+  'STRIPE',
+  'price_1TdNQoFBxenD80aO15hGdV3j',
+  'prod_Uccd56iz2xssPs',
+  b'1',
+  UTC_TIMESTAMP(),
+  UTC_TIMESTAMP()
+FROM subscription_plans sp
+WHERE sp.plan_code = 'CREATOR_URLT_MONTHLY'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM plan_provider_mappings ppm
+    WHERE ppm.plan_id = sp.id
+      AND ppm.provider = 'STRIPE'
+  );
+
 /* --------------------------------------------------------------------------
    One-time product for order checkout
    -------------------------------------------------------------------------- */

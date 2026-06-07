@@ -88,6 +88,7 @@ public enum ErrorCode {
     INVOICE_SESSION_NOT_FOUND(7201, "invoice session not found"),
     INVOICE_INSERT_FAILED(7202 , "invoice insert failed" ),
     // --- Event / JSON ---
+    WEBHOOK_DATA_MISSING(7004, "Webhook data missing"),
     JSON_ERROR(7007, "JSON error"),
     EVENT_PROCESSING(7008, "Event processing error"),
 

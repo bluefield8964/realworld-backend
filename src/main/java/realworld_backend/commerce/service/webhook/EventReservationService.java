@@ -38,7 +38,7 @@ public class EventReservationService {
      * Reserves event ownership or takes over stale ownership.
      * Returns true when the event has already been completed and caller should stop.
      */
-    @Transactional
+
     public boolean reserveOrTakeover(WebhookContext ctx) {
         String eventId = ctx.getEventId();
         BusinessEventType eventType = ctx.getEventType();
@@ -49,7 +49,37 @@ public class EventReservationService {
             return false;
         } catch (DataIntegrityViolationException ignore) {
             BusinessEvent ev = loadExistingEventForUpdate(eventId);
-            return handleExistingEvent(ctx, ev, eventId, eventType);
+            if (ev.getStatus() == EventStatus.SUCCEEDED) {
+                // Idempotent completion: no further work needed.
+                log.info("event already processed, eventId: {}, type: {}", eventId, eventType);
+                return true;
+            }
+
+            if (ev.getStatus() == EventStatus.DEAD) {
+                return handleDeadEvent(ctx, ev, eventId, eventType);
+            }
+
+            if (retryPolicy.exhausted(ev.getAttempts())) {
+                return handleRetryExhausted(ctx, ev, eventId, eventType);
+            }
+
+            if (isProcessingLeaseStillValid(ev)) {
+                log.warn("event still processing by another worker: {}", eventId);
+                throw new BizException(ErrorCode.EVENT_PROCESSING);
+            }
+
+            // FAILED or stale PROCESSING can be safely re-taken.
+            int i = businessEventService.markEventStatusFromFailToProcessing(
+                    eventId,
+                    eventType,
+                    EventStatus.PROCESSING,
+                    ev.getAttempts()
+            );
+            ctx.setAttempts(ev.getAttempts());
+
+            return i != 1;
+
+
         }
     }
 
@@ -114,50 +144,13 @@ public class EventReservationService {
     private BusinessEvent loadExistingEventForUpdate(String eventId) {
         try {
             // Event already exists: lock and inspect current state.
-            return businessEventService.findByIdForUpdateOrThrow(eventId);
+            return businessEventService.findByIdOrThrow(eventId);
         } catch (Exception notFoundAfterConflict) {
             // Visibility race after duplicate key; retry later.
             throw new BizException(ErrorCode.EVENT_NOT_FOUND);
         }
     }
 
-    private boolean handleExistingEvent(
-            WebhookContext ctx,
-            BusinessEvent ev,
-            String eventId,
-            BusinessEventType eventType
-    ) {
-        if (ev.getStatus() == EventStatus.SUCCEEDED) {
-            // Idempotent completion: no further work needed.
-            log.info("event already processed, eventId: {}, type: {}", eventId, eventType);
-            return true;
-        }
-
-        if (ev.getStatus() == EventStatus.DEAD) {
-            return handleDeadEvent(ctx, ev, eventId, eventType);
-        }
-
-        if (retryPolicy.exhausted(ev.getAttempts())) {
-            return handleRetryExhausted(ctx, ev, eventId, eventType);
-        }
-
-        if (isProcessingLeaseStillValid(ev)) {
-            log.warn("event still processing by another worker: {}", eventId);
-            throw new BizException(ErrorCode.EVENT_PROCESSING);
-        }
-
-        // FAILED or stale PROCESSING can be safely re-taken.
-        businessEventService.markEventStatusWithAttempt(
-                eventId,
-                eventType,
-                EventStatus.PROCESSING,
-                null,
-                ev.getAttempts(),
-                0
-        );
-        ctx.setAttempts(ev.getAttempts());
-        return false;
-    }
 
     private boolean handleDeadEvent(
             WebhookContext ctx,
@@ -197,7 +190,7 @@ public class EventReservationService {
             BusinessEventType eventType
     ) {
         // Retry budget exhausted: move to DEAD and hand over to abnormal queue.
-        businessEventService.markEventStatusWithAttempt(
+        businessEventService.markEventStatusToDeadWithAttempt(
                 eventId,
                 eventType,
                 EventStatus.DEAD,

@@ -36,6 +36,7 @@ public class SecurityFilterConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info", "/actuator/metrics", "/actuator/metrics/**", "/actuator/prometheus").permitAll()
                         .requestMatchers("/login", "/homePage", "/api/users", "/api/users/login", "/api/users/refresh", "/api/logout", "/api/webhook/**").permitAll()
+                        .requestMatchers("/api/debug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/articles/*/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/profiles/*").permitAll()

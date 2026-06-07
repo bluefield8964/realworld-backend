@@ -1,5 +1,6 @@
 package realworld_backend.commerce.service.subscription.checkout;
 
+import realworld_backend.commerce.model.exception.WebhookDuplicateIgnoredException;
 import realworld_backend.common.time.UtcTimeMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -137,10 +138,31 @@ public class SubscriptionCheckoutSessionWebhookService {
     }
 
     private void prepareCheckoutContext(WebhookContext ctx, CheckoutSessionWebhookEvent.CheckoutSessionObject session) {
+        log.info(
+                "prepareCheckoutContext: resolving subscriptionNo, eventId={}, sessionId={}, clientReferenceId={}, hasMetadata={}, hasProviderSubscription={}",
+                ctx.getEventId(),
+                session == null ? null : session.getId(),
+                session == null ? null : session.getClientReferenceId(),
+                session != null && session.getMetadata() != null,
+                session != null && session.getSubscription() != null && !session.getSubscription().isBlank()
+        );
         String subscriptionNo = resolveSubscriptionNo(session);
         if (subscriptionNo == null || subscriptionNo.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            log.warn(
+                    "prepareCheckoutContext: subscriptionNo unresolved, eventId={}, sessionId={}, clientReferenceId={}, metadataKeys={}",
+                    ctx.getEventId(),
+                    session == null ? null : session.getId(),
+                    session == null ? null : session.getClientReferenceId(),
+                    session == null || session.getMetadata() == null ? null : session.getMetadata().keySet()
+            );
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
+        log.info(
+                "prepareCheckoutContext: resolved subscriptionNo={}, eventId={}, sessionId={}",
+                subscriptionNo,
+                ctx.getEventId(),
+                session.getId()
+        );
         ctx.setTrackingId(subscriptionNo);
         ctx.setProviderTrackingId(session.getId());
     }
@@ -157,7 +179,7 @@ public class SubscriptionCheckoutSessionWebhookService {
         String idempotentKey = "handleSubscription:event:" + eventId;
         String subscriptionNo = ctx.getTrackingId();
         if (subscriptionNo == null || subscriptionNo.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         RLock lock = redissonClient.getLock("subscription:lock:" + subscriptionNo);
@@ -166,13 +188,13 @@ public class SubscriptionCheckoutSessionWebhookService {
             if (idempotencyLock != null) {
                 log.info("{}: subscription already processed after lock, eventId={}, finish request",
                         capabilityName, eventId);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("{}: Failed to acquire lock for subscription {}, finish request", capabilityName, subscriptionNo);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             CustomerSubscription currentSubscription = requireLocalSubscription(
@@ -575,4 +597,3 @@ public class SubscriptionCheckoutSessionWebhookService {
     ) {
     }
 }
-

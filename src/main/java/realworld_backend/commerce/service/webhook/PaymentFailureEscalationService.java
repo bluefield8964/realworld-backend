@@ -54,8 +54,7 @@ public class PaymentFailureEscalationService {
         WebhookIncidentType incidentType = resolveIncidentType(ctx, ex);
         if (ex instanceof BizException bizException) {
             ErrorCode code = bizException.getErrorCode();
-            if (code == ErrorCode.LOCK_CANNOT_ACQUIRE
-                    || code == ErrorCode.LOCK_INTERRUPTED
+            if (code == ErrorCode.LOCK_INTERRUPTED
                     || code == ErrorCode.EVENT_PROCESSING
                     || code == ErrorCode.IDEMPOTENCY_LOCK_FAILED) {
                 return false;

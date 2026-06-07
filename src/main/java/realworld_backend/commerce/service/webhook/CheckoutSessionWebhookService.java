@@ -9,6 +9,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import realworld_backend.commerce.model.exception.WebhookDuplicateIgnoredException;
 import realworld_backend.commerce.event.BusinessEventType;
 import realworld_backend.commerce.model.Order;
 import realworld_backend.commerce.model.Payment;
@@ -57,10 +58,16 @@ public class CheckoutSessionWebhookService {
         CheckoutSessionWebhookEvent.CheckoutSessionObject session = event.getObject();
         ctx.setProviderEvent(event);
         if (session == null) {
-            throw new BizException(ErrorCode.PROVIDER_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String mode = session.getMode();
+        log.info(
+                "handleCheckoutSessionCompleted: received checkout.session.completed, eventId={}, sessionId={}, mode={}",
+                ctx.getEventId(),
+                session.getId(),
+                mode
+        );
         if ("payment".equals(mode)) {
             handleOrderPaymentCompleted(ctx, session);
             return;
@@ -85,10 +92,16 @@ public class CheckoutSessionWebhookService {
         CheckoutSessionWebhookEvent.CheckoutSessionObject session = event.getObject();
         ctx.setProviderEvent(event);
         if (session == null) {
-            throw new BizException(ErrorCode.PROVIDER_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String mode = session.getMode();
+        log.info(
+                "handleCheckoutSessionAsyncPaymentFailed: received checkout.session.async_payment_failed, eventId={}, sessionId={}, mode={}",
+                ctx.getEventId(),
+                session.getId(),
+                mode
+        );
         if ("payment".equals(mode)) {
             handleOrderPaymentFailed(ctx, session);
             return;
@@ -117,9 +130,15 @@ public class CheckoutSessionWebhookService {
         CheckoutSessionWebhookEvent.CheckoutSessionObject session = event == null ? null : event.getObject();
         ctx.setProviderEvent(event);
         if (session == null) {
-            throw new BizException(ErrorCode.PROVIDER_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         String mode = session.getMode();
+        log.info(
+                "handleCheckoutSessionExpired: received checkout.session.expired, eventId={}, sessionId={}, mode={}",
+                ctx.getEventId(),
+                session.getId(),
+                mode
+        );
         if ("payment".equals(mode)) {
             handleOrderCheckoutSessionExpired(ctx, session);
             return;
@@ -139,7 +158,7 @@ public class CheckoutSessionWebhookService {
 
     private void handleOrderCheckoutSessionExpired(WebhookContext ctx, CheckoutSessionWebhookEvent.CheckoutSessionObject session) {
         if (session == null) {
-            throw new BizException(ErrorCode.PROVIDER_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String sessionId = session.getId();
@@ -178,10 +197,17 @@ public class CheckoutSessionWebhookService {
 
 
         if (session == null) {
-            throw new BizException(ErrorCode.PROVIDER_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String sessionId = session.getId();
+        log.info(
+                "handleOrderPaymentCompleted: validating payment checkout, eventId={}, sessionId={}, paymentStatus={}, hasMetadata={}",
+                ctx.getEventId(),
+                sessionId,
+                session.getPaymentStatus(),
+                session.getMetadata() != null
+        );
         String paymentStatus = session.getPaymentStatus();
         if (!"paid".equals(paymentStatus)) {
             log.warn("payment not completed, status={}", paymentStatus);
@@ -191,7 +217,7 @@ public class CheckoutSessionWebhookService {
         Map<String, String> metadata = session.getMetadata();
         if (metadata == null || !metadata.containsKey("orderNo")) {
             log.error("orderNo missing in metadata");
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String orderNo = metadata.get("orderNo");
@@ -217,7 +243,7 @@ public class CheckoutSessionWebhookService {
      */
     public void handleOrderPaymentFailed(WebhookContext ctx, CheckoutSessionWebhookEvent.CheckoutSessionObject session) throws Exception {
         if (session == null) {
-            throw new BizException(ErrorCode.PROVIDER_SESSION_NOT_FOUND);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         String sessionId = session.getId();
@@ -243,7 +269,7 @@ public class CheckoutSessionWebhookService {
     private void handlePaymentSessionSuccess(WebhookContext ctx) {
         String sessionId = ctx.getProviderTrackingId();
         if (sessionId == null || sessionId.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
         executeOrderTransition(
                 ctx,
@@ -267,7 +293,7 @@ public class CheckoutSessionWebhookService {
         String eventId = ctx.getEventId();
         String sessionId = ctx.getProviderTrackingId();
         if (event == null || sessionId == null || sessionId.isBlank()) {
-            throw new BizException(ErrorCode.JSON_ERROR);
+            throw new BizException(ErrorCode.WEBHOOK_DATA_MISSING);
         }
 
         RLock lock = redissonClient.getLock("session:lock:" + sessionId);
@@ -275,13 +301,13 @@ public class CheckoutSessionWebhookService {
             Object idempotencyLock = redisTemplate.opsForValue().get(idempotentKey);
             if (idempotencyLock != null) {
                 log.info("order transition already processed, eventId={}, transitionEventType={}", eventId, transitionEventType);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("failed to acquire order transition lock, sessionId={}, eventType={}", sessionId, transitionEventType);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             Order currentOrder = requireOrderForTransition(
@@ -483,4 +509,3 @@ public class CheckoutSessionWebhookService {
     }
 
 }
-

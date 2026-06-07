@@ -1,0 +1,74 @@
+{
+  "id": "evt_01JXSMOKEINV0001",
+  "object": "event",
+  "api_version": "2024-10-28.acacia",
+  "created": 1750605000,
+  "data": {
+    "object": {
+      "id": "in_1JXSMOKEINV0001",
+      "object": "invoice",
+      "status": "paid",
+      "paid": true,
+      "customer": "cus_test_0001",
+      "subscription": "sub_stripe_0001",
+      "payment_intent": "pi_1JXSMOKEINV0001",
+      "amount_due": 9900,
+      "amount_paid": 9900,
+      "amount_remaining": 0,
+      "subtotal": 9900,
+      "total": 9900,
+      "tax": 0,
+      "currency": "usd",
+      "period_start": 1750604800,
+      "period_end": 1753196800,
+      "attempt_count": 1,
+      "next_payment_attempt": null,
+      "lines": {
+        "data": [
+          {
+            "id": "il_1JXSMOKEINVLINE0001",
+            "type": "subscription",
+            "subscription": "sub_stripe_0001",
+            "subscription_item": "si_1JXSMOKEITEM0001",
+            "price": {
+              "id": "price_1TdNQoFBxenD80aO15hGdV3j",
+              "recurring": {
+                "interval": "month"
+              }
+            }
+          }
+        ]
+      },
+      "charge": "ch_1JXSMOKEINV0001",
+      "receipt_url": "https://pay.stripe.com/receipts/payment/receipt_test_0001",
+      "created": 1750605000,
+      "finalized_at": 1750605000,
+      "paid_at": 1750605000,
+      "due_date": null,
+      "metadata": {
+        "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "userId": "33",
+        "planCode": "CREATOR_URLT_MONTHLY",
+        "product": "Monthly subscription plan used for local URLT testing."
+      },
+      "subscription_details": {
+        "metadata": {
+          "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+          "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+          "userId": "33",
+          "planCode": "CREATOR_URLT_MONTHLY",
+          "product": "Monthly subscription plan used for local URLT testing."
+        }
+      }
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": {
+    "id": "req_smoke_invoice_paid_0001",
+    "idempotency_key": null
+  },
+  "type": "invoice.payment_succeeded"
+}
+

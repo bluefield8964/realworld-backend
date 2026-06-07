@@ -47,7 +47,7 @@ The webhook path is protected by multiple layers:
 - event reservation
 - Redis idempotency
 - Redisson locks
-- conditional database updates
+- conditional database updates / CAS 
 - retry / takeover semantics
 
 This is required because webhook delivery is not guaranteed to be ordered or single-shot.

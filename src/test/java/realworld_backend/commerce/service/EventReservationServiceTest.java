@@ -81,7 +81,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.SUCCEEDED, 2, LocalDateTime.now()));
 
         WebhookContext ctx = baseContext(eventId, type);
@@ -105,7 +105,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.DEAD, 4, LocalDateTime.now()));
 
         WebhookContext ctx = baseContext(eventId, type);
@@ -143,7 +143,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.DEAD, 3, LocalDateTime.now()));
 
         WebhookContext ctx = baseContext(eventId, type);
@@ -168,7 +168,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.FAILED, 5, LocalDateTime.now().minusMinutes(10)));
         when(retryPolicy.exhausted(5)).thenReturn(true);
 
@@ -215,7 +215,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.PROCESSING, 1, handledAt));
         when(retryPolicy.exhausted(1)).thenReturn(false);
         when(retryPolicy.mainStreamNextRetryAt(eq(1), any(Instant.class)))
@@ -240,7 +240,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.PROCESSING, 2, handledAt));
         when(retryPolicy.exhausted(2)).thenReturn(false);
         when(retryPolicy.mainStreamNextRetryAt(eq(2), any(Instant.class)))
@@ -270,7 +270,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenReturn(existingEvent(eventId, type, EventStatus.FAILED, 3, LocalDateTime.now().minusMinutes(5)));
         when(retryPolicy.exhausted(3)).thenReturn(false);
 
@@ -298,7 +298,7 @@ class EventReservationServiceTest {
         doThrow(new DataIntegrityViolationException("duplicate event"))
                 .when(businessEventService)
                 .saveProcessing(eventId, type);
-        when(businessEventService.findByIdForUpdateOrThrow(eventId))
+        when(businessEventService.findByIdOrThrow(eventId))
                 .thenThrow(new RuntimeException("not visible yet"));
 
         WebhookContext ctx = baseContext(eventId, type);

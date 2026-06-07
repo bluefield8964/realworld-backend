@@ -9,6 +9,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import realworld_backend.commerce.model.exception.WebhookDuplicateIgnoredException;
 import realworld_backend.commerce.model.log.AbnormalOrderType;
 import realworld_backend.commerce.model.subscription.CustomerSubscription;
 import realworld_backend.commerce.model.subscription.SubscriptionWebhookEvent;
@@ -77,14 +78,14 @@ public class SubscriptionSnapshotSyncService {
             if (idempotencyLock != null) {
                 log.info("subscription snapshot already processed after lock, eventType={}, eventId={}",
                         ctx.getEventType(), eventId);
-                return;
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if (!locked) {
                 log.warn("subscription snapshot failed to acquire lock, eventType={}, subscriptionNo={}",
                         ctx.getEventType(), subscriptionNo);
-                throw new BizException(ErrorCode.LOCK_CANNOT_ACQUIRE);
+                throw new WebhookDuplicateIgnoredException(ErrorCode.LOCK_CANNOT_ACQUIRE);
             }
 
             boolean synced = syncSubscriptionSnapshot(subscriptionNo, subscriptionObject);

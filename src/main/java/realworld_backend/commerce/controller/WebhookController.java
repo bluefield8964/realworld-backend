@@ -30,9 +30,16 @@ public class WebhookController {
             @RequestBody String payload,
             @RequestHeader(value = "Stripe-Signature") String sigHeader
     ) {
+        log.info("stripe webhook ingress received, path=/api/webhook/stripeOrderAcceptor, payloadLength={}, signaturePresent={}",
+                payload == null ? 0 : payload.length(),
+                sigHeader != null && !sigHeader.isBlank());
         WebhookDecision decision =
                 webhookOrchestrator.process(payload, sigHeader, endpointSecret, "STRIPE");
         String body = decision.terminal() ? "accepted_terminal" : "retry_later";
+        log.info("stripe webhook ingress finished, httpStatus={}, terminal={}, body={}",
+                decision.httpStatus(),
+                decision.terminal(),
+                body);
         return ResponseEntity.status(decision.httpStatus()).body(body);
     }
 }

@@ -125,7 +125,7 @@ Does not own:
 ### Subscription family
 `customer.subscription.*`
 - owns lifecycle truth
-- updates the local subscription state machine
+- updates the local subscription state rely on state machine
 
 ### Invoice family
 `invoice.*`

@@ -12,16 +12,16 @@ import org.springframework.data.redis.core.ValueOperations;
 import realworld_backend.commerce.event.BusinessEventType;
 import realworld_backend.commerce.model.checkoutPayment.CheckoutSessionWebhookEvent;
 import realworld_backend.commerce.model.subscription.CustomerSubscription;
-import realworld_backend.commerce.model.subscription.SubscriptionHistory;
 import realworld_backend.commerce.model.subscription.enums.SubscriptionStatus;
 import realworld_backend.commerce.service.AbnormalOrchestrator;
 import realworld_backend.commerce.service.entitlement.EntitlementProjector;
-import realworld_backend.commerce.service.webhook.PaymentFailureEscalationService;
-import realworld_backend.commerce.service.webhook.core.WebhookContext;
+import realworld_backend.commerce.service.metrics.CommerceMetricsService;
 import realworld_backend.commerce.service.statemachine.SubscriptionWebhookStateMachine;
 import realworld_backend.commerce.service.subscription.CustomerSubscriptionService;
 import realworld_backend.commerce.service.subscription.SubscriptionHistoryService;
 import realworld_backend.commerce.service.subscription.snapshot.SubscriptionSnapshotMergeService;
+import realworld_backend.commerce.service.webhook.PaymentFailureEscalationService;
+import realworld_backend.commerce.service.webhook.core.WebhookContext;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -29,16 +29,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SubscriptionCheckoutSessionWebhookServiceTest {
@@ -62,6 +54,8 @@ class SubscriptionCheckoutSessionWebhookServiceTest {
     private SubscriptionSnapshotMergeService subscriptionSnapshotMergeService;
     @Mock
     private RLock lock;
+    @Mock
+    private CommerceMetricsService commerceMetricsService;
 
     private SubscriptionCheckoutSessionWebhookService service;
 
@@ -77,7 +71,7 @@ class SubscriptionCheckoutSessionWebhookServiceTest {
                 paymentFailureEscalationService,
                 new SubscriptionWebhookStateMachine(),
                 subscriptionSnapshotMergeService,
-                entitlementProjector
+                entitlementProjector, commerceMetricsService
         );
 
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);

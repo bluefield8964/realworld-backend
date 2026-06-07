@@ -1,0 +1,79 @@
+{
+  "id": "evt_01JXSMOKEINV0002",
+  "object": "event",
+  "api_version": "2024-10-28.acacia",
+  "created": 1750605600,
+  "data": {
+    "object": {
+      "id": "in_1JXSMOKEINV0002",
+      "object": "invoice",
+      "status": "open",
+      "paid": false,
+      "customer": "cus_test_0001",
+      "subscription": "sub_stripe_0001",
+      "payment_intent": "pi_1JXSMOKEINV0002",
+      "amount_due": 9900,
+      "amount_paid": 0,
+      "amount_remaining": 9900,
+      "subtotal": 9900,
+      "total": 9900,
+      "tax": 0,
+      "currency": "usd",
+      "period_start": 1750604800,
+      "period_end": 1753196800,
+      "attempt_count": 2,
+      "next_payment_attempt": 1750609200,
+      "lines": {
+        "data": [
+          {
+            "id": "il_1JXSMOKEINVLINE0002",
+            "type": "subscription",
+            "subscription": "sub_stripe_0001",
+            "subscription_item": "si_1JXSMOKEITEM0001",
+            "price": {
+              "id": "price_1TdNQoFBxenD80aO15hGdV3j",
+              "recurring": {
+                "interval": "month"
+              }
+            }
+          }
+        ]
+      },
+      "charge": null,
+      "receipt_url": null,
+      "created": 1750605600,
+      "finalized_at": 1750605600,
+      "paid_at": null,
+      "due_date": null,
+      "last_payment_error": {
+        "code": "card_declined",
+        "decline_code": "insufficient_funds",
+        "message": "Your card has insufficient funds."
+      },
+      "metadata": {
+        "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "userId": "33",
+        "planCode": "CREATOR_URLT_MONTHLY",
+        "product": "Monthly subscription plan used for local URLT testing."
+      },
+      "subscription_details": {
+        "metadata": {
+          "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+          "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+          "userId": "33",
+          "planCode": "CREATOR_URLT_MONTHLY",
+          "product": "Monthly subscription plan used for local URLT testing."
+        }
+      }
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": {
+    "id": "req_smoke_invoice_failed_0001",
+    "idempotency_key": null
+  },
+  "type": "invoice.payment_failed"
+}
+

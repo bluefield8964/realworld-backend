@@ -25,22 +25,26 @@ public class BusinessEventService {
      * Reserve event slot in PROCESSING.
      * Duplicate key means the event was seen before.
      */
+    @Transactional
     public void saveProcessing(String eventId, BusinessEventType eventType) {
-        businessEventRepository.save(
-                new BusinessEvent(eventId, eventType, EventStatus.PROCESSING, null, utcNow(), 0)
-        );
+
+        businessEventRepository.insertProcessing(eventId, eventType, EventStatus.PROCESSING, null, utcNow());
     }
 
-    public BusinessEvent findByIdForUpdateOrThrow(String eventId) {
-        return businessEventRepository.findByIdForUpdate(eventId).orElseThrow();
-    }
 
     /**
      * Mark event success in current transaction.
      */
+    @Transactional
     public void markSuccessAndIncrementAttempt(String eventId, EventStatus status, String lastError) {
         businessEventRepository.updateStatusAndIncAttempt(eventId, status, lastError, utcNow());
     }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BusinessEvent findByIdOrThrow(String eventId) {
+        return businessEventRepository.findByEventId(eventId).orElseThrow();
+    }
+
 
     /**
      * Persist failure/dead status in REQUIRES_NEW so trace survives outer rollback.
@@ -56,6 +60,50 @@ public class BusinessEventService {
     ) {
         // Upsert handles both "row exists" and "row missing after conflict" cases.
         businessEventRepository.upsertFailStatus(
+                eventId,
+                type,
+                status.name(),
+                lastError,
+                utcNow(),
+                attempt,
+                attemptInc
+        );
+    }
+
+    /**
+     * Persist failure/dead status in REQUIRES_NEW so trace survives outer rollback.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int markEventStatusFromFailToProcessing(
+            String eventId,
+            BusinessEventType type,
+            EventStatus status,
+            int attempt
+    ) {
+        // Upsert handles both "row exists" and "row missing after conflict" cases.
+        return businessEventRepository.markEventStatusFromFailToProcessing(
+                eventId,
+                type,
+                status.name(),
+                utcNow(),
+                attempt
+        );
+    }
+
+    /**
+     * Persist failure/dead status in REQUIRES_NEW so trace survives outer rollback.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markEventStatusToDeadWithAttempt(
+            String eventId,
+            BusinessEventType type,
+            EventStatus status,
+            String lastError,
+            int attempt,
+            int attemptInc
+    ) {
+        // Upsert handles both "row exists" and "row missing after conflict" cases.
+        businessEventRepository.upsertDeadStatus(
                 eventId,
                 type,
                 status.name(),

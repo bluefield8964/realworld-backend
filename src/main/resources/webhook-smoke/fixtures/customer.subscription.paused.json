@@ -1,0 +1,65 @@
+{
+  "id": "evt_01JXSMOKESUB0004",
+  "object": "event",
+  "api_version": "2024-10-28.acacia",
+  "created": 1750605300,
+  "data": {
+    "object": {
+      "id": "sub_stripe_0001",
+      "object": "subscription",
+      "status": "paused",
+      "customer": "cus_test_0001",
+      "current_period_start": 1750604800,
+      "current_period_end": 1753196800,
+      "billing_cycle_anchor": 1750604800,
+      "trial_start": 1750001800,
+      "trial_end": 1750604800,
+      "cancel_at_period_end": false,
+      "canceled_at": null,
+      "ended_at": null,
+      "latest_invoice": "in_1JXSMOKEINV0001",
+      "default_payment_method": "pm_card_visa",
+      "collection_method": "charge_automatically",
+      "items": {
+        "data": [
+          {
+            "id": "si_1JXSMOKEITEM0001",
+            "current_period_start": 1750604800,
+            "current_period_end": 1753196800,
+            "quantity": 1,
+            "price": {
+              "id": "price_1TdNQoFBxenD80aO15hGdV3j",
+              "product": "prod_Uccd56iz2xssPs",
+              "unit_amount": 9900,
+              "recurring": {
+                "interval": "month"
+              }
+            }
+          }
+        ]
+      },
+      "pause_collection": {
+        "behavior": "void",
+        "resumes_at": 1750608600
+      },
+      "pending_update": null,
+      "metadata": {
+        "subscription_type": "Creator URLT Monthly",
+        "subscriptionNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "userId": "33",
+        "planCode": "CREATOR_URLT_MONTHLY",
+        "orderNo": "67250cc6-970f-4d81-b87e-14bd95fb56c8",
+        "product": "Monthly subscription plan used for local URLT testing."
+      },
+      "created": 1750605300
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": {
+    "id": "req_smoke_sub_paused_0001",
+    "idempotency_key": null
+  },
+  "type": "customer.subscription.paused"
+}
+

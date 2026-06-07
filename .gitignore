@@ -35,6 +35,8 @@ src/main/resources/application-local.yaml
 src/main/resources/application-dev.yaml
 src/main/resources/AGENTS.md
 prometheus/prometheus_local.yml
+/logs/
+*.log
 
 
 # optional: ignore all local configs

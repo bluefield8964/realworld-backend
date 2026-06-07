@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import realworld_backend.commerce.model.EventStatus;
 import realworld_backend.commerce.service.core.PaymentChannelException;
+import realworld_backend.commerce.model.exception.WebhookDuplicateIgnoredException;
 import realworld_backend.commerce.service.webhook.core.WebhookDecision;
 import realworld_backend.commerce.service.webhook.core.WebhookErrorPolicy;
 import realworld_backend.common.exception.BizException;
@@ -16,6 +17,14 @@ public class DefaultWebhookErrorPolicy implements WebhookErrorPolicy {
 
     @Override
     public WebhookDecision classify(Throwable ex) {
+        if (ex instanceof WebhookDuplicateIgnoredException duplicateIgnoredException) {
+            ErrorCode code = duplicateIgnoredException.getErrorCode();
+            if (code == ErrorCode.LOCK_CANNOT_ACQUIRE) {
+                return new WebhookDecision(true, null, HttpStatus.OK, false, null);
+            }
+            return new WebhookDecision(true, null, HttpStatus.OK, false, null);
+        }
+
         if (ex instanceof BizException biz) {
             ErrorCode code = biz.getErrorCode();
 
@@ -43,12 +52,6 @@ public class DefaultWebhookErrorPolicy implements WebhookErrorPolicy {
                     || code == ErrorCode.JSON_ERROR
                     || code == ErrorCode.STATEMENT_DOES_NOT_MATCH_EVENT_TYPE
             ) {
-                return new WebhookDecision(false, EventStatus.FAILED,
-                        HttpStatus.INTERNAL_SERVER_ERROR, false, null);
-            }
-
-            if (code == ErrorCode.LOCK_CANNOT_ACQUIRE) {
-                // Lock contention is treated as retryable failure, so attempts can move forward.
                 return new WebhookDecision(false, EventStatus.FAILED,
                         HttpStatus.INTERNAL_SERVER_ERROR, false, null);
             }

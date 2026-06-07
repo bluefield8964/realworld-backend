@@ -71,7 +71,7 @@ flowchart TD
     I --> K[Abnormal or incident written when needed]
     I --> L[Metrics recorded]
 ```
-
+![d9389e2455027b9c97f5bf139aae74d3.png](../../../../../../../Documents/xwechat_files/wxid_c9cjznh0jd5q12_bbcf/temp/RWTemp/2026-06/3ca2c0018914c2ed778c481370211c64/d9389e2455027b9c97f5bf139aae74d3.png)
 ## The boundaries that matter
 
 ### 1. Payment channel boundary
