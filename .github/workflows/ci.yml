@@ -45,7 +45,7 @@ jobs:
         run: chmod +x mvnw
 
       - name: Compile
-        run: ./mvnw -B -q -DskipTests compile
+        run: bash ./mvnw -B -q -DskipTests compile
 
   docker:
     name: Build and push image
